@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dast_1">
+
+    <!-- VARIABLES -->
+
+    <xacro:property name="path" value="package://description/meshes" />
+    <xacro:property name="scale" value="0.01 0.01 0.01" />
+    <xacro:property name="PI" value="3.14159265359" />
+    <xacro:property name="effort" value="20.0" />
+    <xacro:property name="velocity" value="10.0" />
+
+    <xacro:macro name="default_inertial" params="mass">
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass}" />
+            <inertia ixx="1.0" ixy="0.0" ixz="0.0"
+                        iyy="1.0" iyz="0.0"
+                        izz="1.0" />
+        </inertial>
+    </xacro:macro>
+
+    <!-- LINKS -->
+
+    <link name="world"/>
+
+    <link name="base_link">
+        <xacro:default_inertial mass="0.2"/>
+        <visual>
+            <origin rpy="-${PI/2} 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/base.stl" scale="${scale}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.6" radius="0.2"/>
+            </geometry>              
+        </collision>
+    </link>
+
+    <!-- JOINTS -->
+
+    <joint name="virtual_joint" type="fixed">
+        <parent link="world"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint> 
+
+
+
+
+</robot>
