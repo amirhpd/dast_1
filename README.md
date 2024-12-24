@@ -1,7 +1,7 @@
 # Robot Manipulator
 
 
-**Baranch Info:** Bare minimum code to display the URD model. Contains stl files, simple urdf file, and the launch file to display the model with rviz.
+**Baranch Info:** Bare minimum code to display the URDF model. Contains stl files, the urdf file, and the launch file to display the model with rviz.
 
 
 ## About
