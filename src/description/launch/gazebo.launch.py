@@ -62,11 +62,16 @@ def generate_launch_description():
         arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"]
     )
 
+    controller_launch = IncludeLaunchDescription(  # load the controller
+            PythonLaunchDescriptionSource([f"{get_package_share_directory('controller')}/launch", "/controller.launch.py"]),
+            )
+
     return LaunchDescription([
         robot_description_arg,
         gazebo_resource_path_env_var,
         robot_state_publisher_node,
         gazebo_launch,
         ros_gz_sim_node,
-        gz_ros2_bridge
+        gz_ros2_bridge,
+        controller_launch
     ])
