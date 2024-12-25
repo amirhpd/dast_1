@@ -1,5 +1,6 @@
 # Robot Manipulator
 
+**Baranch Info:** Containd launch files and config files to load the controller. Uses *ign_ros2_control* package and *controller_manager* package. The controller launch file is added at the end of the Gazebo launch file, so running the Gazebo launch will also run the controllers.
 
 ## About
 Dast_1 is my 5-DOF serial manipulator.

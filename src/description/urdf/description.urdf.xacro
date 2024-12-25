@@ -2,7 +2,6 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dast_1">
 
     <!-- VARIABLES -->
-
     <xacro:property name="path" value="package://description/meshes" />
     <xacro:property name="scale" value="0.01 0.01 0.01" />
     <xacro:property name="PI" value="3.14159265359" />
@@ -13,14 +12,11 @@
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <mass value="${mass}" />
-            <inertia ixx="1.0" ixy="0.0" ixz="0.0"
-                        iyy="1.0" iyz="0.0"
-                        izz="1.0" />
+            <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
         </inertial>
     </xacro:macro>
 
     <!-- LINKS -->
-
     <link name="world"/>
 
     <link name="base_link">
@@ -119,9 +115,7 @@
         </collision>
     </link>
 
-
     <!-- JOINTS -->
-
     <joint name="virtual_joint" type="fixed">
         <parent link="world"/>
         <child link="base_link"/>
@@ -173,7 +167,14 @@
                effort="${effort}" velocity="${velocity}"/>
     </joint>
 
+    <!-- Control -->
+    <xacro:include filename="$(find description)/urdf/control.xacro" />
 
-
+    <!-- Gazebo (for Humble)-->
+    <gazebo>
+        <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
+            <parameters>$(find controller)/config/controller.yaml</parameters>
+        </plugin>
+    </gazebo>
 
 </robot>
