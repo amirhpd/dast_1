@@ -32,11 +32,93 @@
             </geometry>
         </visual>
         <collision>
+            <origin rpy="-${PI/2} 0 0" xyz="0 0 0"/>
             <geometry>
-                <cylinder length="0.6" radius="0.2"/>
+                <mesh filename="${path}/base_collision.stl" scale="${scale}"/>
             </geometry>              
         </collision>
     </link>
+
+    <link name="rotary_link">
+        <xacro:default_inertial mass="0.05"/>
+        <visual>
+            <origin rpy="-${PI/2} 0 -${PI/2}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/rotary.stl" scale="${scale}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="-${PI/2} 0 -${PI/2}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/rotary_collision.stl" scale="${scale}"/>
+            </geometry>      
+        </collision>
+    </link>
+
+    <link name="arm_1_link">
+        <xacro:default_inertial mass="0.1"/>
+        <visual>
+            <origin rpy="0 ${PI/2} ${PI}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/arm_1.stl" scale="${scale}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 ${PI/2} ${PI}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/arm_1_collision.stl" scale="${scale}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="arm_2_link">
+        <xacro:default_inertial mass="0.1"/>
+        <visual>
+            <origin rpy="0 ${PI/2} 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/arm_2.stl" scale="${scale}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 ${PI/2} 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/arm_2_collision.stl" scale="${scale}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="arm_3_link">
+        <xacro:default_inertial mass="0.1"/>
+        <visual>
+            <origin rpy="0 ${PI/2} ${PI}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/arm_3.stl" scale="${scale}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 ${PI/2} ${PI}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/arm_3_collision.stl" scale="${scale}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="gripper_link">
+        <xacro:default_inertial mass="0.05"/>
+        <visual>
+            <origin rpy="-${PI/2} 0 ${PI}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/gripper_3.stl" scale="${scale}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="-${PI/2} 0 ${PI}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="${path}/gripper_3_collision.stl" scale="${scale}"/>
+            </geometry>
+        </collision>
+    </link>
+
 
     <!-- JOINTS -->
 
@@ -45,6 +127,51 @@
         <child link="base_link"/>
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint> 
+
+    <joint name ="joint_1" type="revolute">
+        <parent link="base_link"/>
+        <child link = "rotary_link"/>
+        <origin xyz="0 0 1.3"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="-${PI / 2}" upper="${PI / 2}" 
+               effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="joint_2" type="revolute">
+        <parent link="rotary_link"/>
+        <child link = "arm_1_link"/>
+        <origin xyz="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <limit lower="-${PI / 2}" upper="${PI / 2}" 
+               effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="joint_3" type="revolute">
+        <parent link="arm_1_link"/>
+        <child link = "arm_2_link"/>
+        <origin xyz="0 0 1.545"/>
+        <axis xyz="1 0 0"/>
+        <limit lower="-${PI / 2}" upper="${PI / 2}" 
+               effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="joint_4" type="revolute">
+        <parent link="arm_2_link"/>
+        <child link = "arm_3_link"/>
+        <origin xyz="0 0 1.945"/>
+        <axis xyz="1 0 0"/>
+        <limit lower="-${PI / 2}" upper="${PI / 2}" 
+               effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="joint_5" type="revolute">
+        <parent link="arm_3_link"/>
+        <child link = "gripper_link"/>
+        <origin xyz="0 0 0.88"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="-${PI / 2}" upper="${PI / 2}" 
+               effort="${effort}" velocity="${velocity}"/>
+    </joint>
 
 
 
