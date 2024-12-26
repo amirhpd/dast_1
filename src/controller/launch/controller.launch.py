@@ -66,7 +66,7 @@ def generate_launch_description():
     return LaunchDescription([
         robot_description_arg,
         is_sim_arg,
-        robot_state_publisher_node,
+        # robot_state_publisher_node,  # repeated in gazebo.launch.py
         controller_manager__spawner__joint_state_broadcaster__node,
         controller_manager__spawner__manipulator_controller__node
     ])
