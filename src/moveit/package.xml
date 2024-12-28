@@ -13,7 +13,7 @@
   <exec_depend>rviz2</exec_depend>
   <exec_depend>moveit_configs_utils</exec_depend>
   <exec_depend>moveit_ros_move_group</exec_depend>
-  <exec_depend>arm_description</exec_depend>
+  <exec_depend>description</exec_depend>
 
   <depend>rclcpp</depend>
   <depend>moveit_ros_planning_interface</depend>

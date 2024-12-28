@@ -12,8 +12,11 @@ find_package(moveit_ros_planning_interface REQUIRED)
 add_executable(interface_angle src/interface_angle.cpp)
 ament_target_dependencies(interface_angle rclcpp moveit_ros_planning_interface)
 
+add_executable(interface_pose src/interface_pose.cpp)
+ament_target_dependencies(interface_pose rclcpp moveit_ros_planning_interface)
+
 install(TARGETS
-interface_angle
+interface_angle interface_pose
   DESTINATION lib/${PROJECT_NAME}
 )
 

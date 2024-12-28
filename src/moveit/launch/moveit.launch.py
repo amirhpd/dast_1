@@ -28,6 +28,7 @@ def generate_launch_description():
         .robot_description(file_path=f"{get_package_share_directory('description')}/urdf/description.urdf.xacro")
         .robot_description_semantic(file_path="config/dast_1.srdf")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
+        .planning_pipelines(pipelines=["ompl", "chomp", "pilz_industrial_motion_planner"])
         .to_moveit_configs()
     )
     move_group_node = Node(
@@ -46,7 +47,8 @@ def generate_launch_description():
         output="screen",
         arguments=["-d", f"{get_package_share_directory('moveit')}/config/moveit.rviz" ],  # [1]
         parameters=[
-            moveit_config.joint_limits,
+            # moveit_config.joint_limits,
+            moveit_config.planning_pipelines,
             moveit_config.robot_description_kinematics,
             moveit_config.robot_description,
             moveit_config.robot_description_semantic,
