@@ -1,0 +1,19 @@
+FW kinematics:
+
+ros2 launch description display.launch.py
+
+ros2 topic list 
+gives: /tf which is dynamic transformation and /tf_static which is static transformation
+
+ros2 topic info /tf --verbose
+we see that robot_state_publisher node is publishing to /tf
+
+ros2 topic eccho /tf
+it constantly publishes the msgs that define the position of each frame relative to the previous frame
+
+ros2 run tf2_tools view_frames
+generates a graph of the frames and their connections
+
+ros2 run tf2_ros tf2_echo world gripper_link
+gives translation and rotation values of between the given frames
+if the first and last frames are passed, it actually solves the fw kinematics problem

@@ -1,3 +1,16 @@
+// Node to send command to moveit.
+// Moves the end effector to the given pose.
+// Humble only supports the moveit interface with C++
+// commands to run:
+// ros2 launch description gazebo.launch.py 
+// ros2 launch moveit moveit.launch.py 
+// ros2 run moveit interface_pose 0.1 2.0 5.0 0.0 0.0 0.0
+// valid pose examples:
+// 0.0 0.0 5.67 0.0 0.0 0.0
+// 0.1 2.0 5.0 0.0 0.0 0.0
+// 2.211 -1.420 1.591 -3.054 0.000 1.000
+
+
 #include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <geometry_msgs/msg/pose.hpp>
@@ -12,22 +25,11 @@ void move_robot_to_pose(
     manipulator_move_group.setPlannerId("RRTConnect");  // default
     manipulator_move_group.setPlanningTime(30.0);
 
-    // geometry_msgs::msg::Pose target_pose;
-    // target_pose.position.x = x;
-    // target_pose.position.y = y;
-    // target_pose.position.z = z;
-    // tf2::Quaternion quaternion;
-    // quaternion.setRPY(roll, pitch, yaw);
-    // target_pose.orientation.x = quaternion.x();
-    // target_pose.orientation.y = quaternion.y();
-    // target_pose.orientation.z = quaternion.z();
-    // target_pose.orientation.w = quaternion.w();
-
     tf2::Quaternion quaternion;
     quaternion.setRPY(roll, pitch, yaw);
-    geometry_msgs::msg::Quaternion q_msg = tf2::toMsg(quaternion);
+    geometry_msgs::msg::Quaternion quaternion_msg = tf2::toMsg(quaternion);
     geometry_msgs::msg::Pose target_pose;
-    target_pose.orientation = q_msg;
+    target_pose.orientation = quaternion_msg;
     target_pose.position.x = x;
     target_pose.position.y = y;
     target_pose.position.z = z;
@@ -54,6 +56,7 @@ void move_robot_to_pose(
     {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "MANIPULATOR PLAN FAILED!");
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), moveit::core::error_code_to_string(plan_result).c_str());
+        return;
     }
 }
 
@@ -78,5 +81,4 @@ int main(int argc, char **argv)
     move_robot_to_pose(node, x, y, z, roll, pitch, yaw);
 
     rclcpp::shutdown();
-    return 0;
 }
