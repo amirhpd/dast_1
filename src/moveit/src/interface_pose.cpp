@@ -12,28 +12,27 @@ void move_robot_to_pose(
     manipulator_move_group.setPlannerId("RRTConnect");  // default
     manipulator_move_group.setPlanningTime(30.0);
 
+    // geometry_msgs::msg::Pose target_pose;
+    // target_pose.position.x = x;
+    // target_pose.position.y = y;
+    // target_pose.position.z = z;
+    // tf2::Quaternion quaternion;
+    // quaternion.setRPY(roll, pitch, yaw);
+    // target_pose.orientation.x = quaternion.x();
+    // target_pose.orientation.y = quaternion.y();
+    // target_pose.orientation.z = quaternion.z();
+    // target_pose.orientation.w = quaternion.w();
+
+    tf2::Quaternion quaternion;
+    quaternion.setRPY(roll, pitch, yaw);
+    geometry_msgs::msg::Quaternion q_msg = tf2::toMsg(quaternion);
     geometry_msgs::msg::Pose target_pose;
+    target_pose.orientation = q_msg;
     target_pose.position.x = x;
     target_pose.position.y = y;
     target_pose.position.z = z;
 
-    tf2::Quaternion quaternion;
-    quaternion.setRPY(roll, pitch, yaw);
-    target_pose.orientation.x = quaternion.x();
-    target_pose.orientation.y = quaternion.y();
-    target_pose.orientation.z = quaternion.z();
-    target_pose.orientation.w = quaternion.w();
     bool manipulator_at_goal = manipulator_move_group.setPoseTarget(target_pose);
-
-    // tf2::Quaternion quaternion;
-    // quaternion.setRPY(roll, pitch, yaw);
-    // geometry_msgs::msg::Quaternion q_msg = tf2::toMsg(quaternion);
-    // geometry_msgs::msg::Pose goal_pose;
-    // goal_pose.orientation = q_msg;
-    // goal_pose.position.x = x;
-    // goal_pose.position.y = y;
-    // goal_pose.position.z = z;
-    // bool manipulator_at_goal = manipulator_move_group.setPoseTarget(goal_pose);
 
     if (!manipulator_at_goal)
     {
