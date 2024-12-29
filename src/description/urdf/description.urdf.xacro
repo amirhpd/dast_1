@@ -167,14 +167,14 @@
                effort="${effort}" velocity="${velocity}"/>
     </joint>
 
-    <!-- Control -->
-    <xacro:include filename="$(find description)/urdf/control.xacro" />
-
     <!-- Gazebo (for Humble)-->
     <gazebo>
         <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
             <parameters>$(find controller)/config/controller.yaml</parameters>
         </plugin>
     </gazebo>
+
+    <!-- Control -->
+    <xacro:include filename="$(find description)/urdf/control.xacro" />
 
 </robot>
