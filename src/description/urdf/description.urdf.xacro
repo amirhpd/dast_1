@@ -115,6 +115,8 @@
         </collision>
     </link>
 
+    <link name="tip"/>
+
     <!-- JOINTS -->
     <joint name="virtual_joint" type="fixed">
         <parent link="world"/>
@@ -166,6 +168,12 @@
         <limit lower="-${PI / 2}" upper="${PI / 2}" 
                effort="${effort}" velocity="${velocity}"/>
     </joint>
+
+    <joint name="virtual_joint_tip" type="fixed">
+        <parent link="gripper_link"/>
+        <child link="tip"/>
+        <origin xyz="0 0 1.56" rpy="0 0 0"/>
+    </joint> 
 
     <!-- Gazebo (for Humble)-->
     <gazebo>
