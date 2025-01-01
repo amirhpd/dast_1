@@ -1,5 +1,10 @@
 # Robot Manipulator
 
+**Branch Info:** 
+* Contains a launch file to load MoveIt plugin in rviz.
+* Contains a moveit interface to send joint angle commands to the robot.
+* Contains a moveit interface to send pose commands to the robot.
+
 ## About
 Dast_1 is my 5-DOF serial manipulator.
 * Mechanical parts are built by 3D printing.
