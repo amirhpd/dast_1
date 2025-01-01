@@ -28,16 +28,18 @@ void move_robot_by_angle(
     }
 
     moveit::planning_interface::MoveGroupInterface::Plan manipulator_plan;
-    bool manipulator_plan_success = (manipulator_move_group.plan(manipulator_plan) == moveit::core::MoveItErrorCode::SUCCESS);
+    moveit::core::MoveItErrorCode plan_result = manipulator_move_group.plan(manipulator_plan);
 
-    if(manipulator_plan_success)
+    if(plan_result == moveit::core::MoveItErrorCode::SUCCESS)
     {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "MANIPULATOR PLAN SUCCEEDED!");
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), moveit::core::error_code_to_string(plan_result).c_str());
         manipulator_move_group.move();
     }
     else
     {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "MANIPULATOR PLAN FAILED!");
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), moveit::core::error_code_to_string(plan_result).c_str());
         return;
     }
 }
@@ -48,7 +50,7 @@ int main(int argc, char **argv)
 
     if (argc != 6)
         {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Pass joint angles as arguments.");
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Usage: <joint_1> <joint_2> <joint_3> <joint_4> <joint_5>");
         return 1;
         }
     float joint_1 = std::stof(argv[1]);

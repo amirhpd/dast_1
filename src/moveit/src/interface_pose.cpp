@@ -1,3 +1,17 @@
+// Node to send command to moveit.
+// Moves the end effector to the given pose.
+// Humble only supports the moveit interface with C++
+// commands to run:
+// ros2 launch description gazebo.launch.py 
+// ros2 launch moveit moveit.launch.py 
+// ros2 run moveit interface_pose 2.094 -1.345 0.038 -3.053 0.000 1.000
+// valid pose examples:
+// 0.0 0.0 7.23 0.0 0.0 0.0
+// 2.094 -1.345 0.038 -3.053 0.000 1.000
+// 3.112 2.400 4.501 -0.987 0.708 -0.508
+// -4.433 0.635 1.326 -0.000 -1.130 -0.142
+
+
 #include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <geometry_msgs/msg/pose.hpp>
@@ -12,28 +26,16 @@ void move_robot_to_pose(
     manipulator_move_group.setPlannerId("RRTConnect");  // default
     manipulator_move_group.setPlanningTime(30.0);
 
+    tf2::Quaternion quaternion;
+    quaternion.setRPY(roll, pitch, yaw);
+    geometry_msgs::msg::Quaternion quaternion_msg = tf2::toMsg(quaternion);
     geometry_msgs::msg::Pose target_pose;
+    target_pose.orientation = quaternion_msg;
     target_pose.position.x = x;
     target_pose.position.y = y;
     target_pose.position.z = z;
 
-    tf2::Quaternion quaternion;
-    quaternion.setRPY(roll, pitch, yaw);
-    target_pose.orientation.x = quaternion.x();
-    target_pose.orientation.y = quaternion.y();
-    target_pose.orientation.z = quaternion.z();
-    target_pose.orientation.w = quaternion.w();
     bool manipulator_at_goal = manipulator_move_group.setPoseTarget(target_pose);
-
-    // tf2::Quaternion quaternion;
-    // quaternion.setRPY(roll, pitch, yaw);
-    // geometry_msgs::msg::Quaternion q_msg = tf2::toMsg(quaternion);
-    // geometry_msgs::msg::Pose goal_pose;
-    // goal_pose.orientation = q_msg;
-    // goal_pose.position.x = x;
-    // goal_pose.position.y = y;
-    // goal_pose.position.z = z;
-    // bool manipulator_at_goal = manipulator_move_group.setPoseTarget(goal_pose);
 
     if (!manipulator_at_goal)
     {
@@ -55,6 +57,7 @@ void move_robot_to_pose(
     {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "MANIPULATOR PLAN FAILED!");
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), moveit::core::error_code_to_string(plan_result).c_str());
+        return;
     }
 }
 
@@ -79,5 +82,4 @@ int main(int argc, char **argv)
     move_robot_to_pose(node, x, y, z, roll, pitch, yaw);
 
     rclcpp::shutdown();
-    return 0;
 }
