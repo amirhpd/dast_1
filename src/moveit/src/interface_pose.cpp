@@ -18,13 +18,44 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit_msgs/msg/display_robot_state.h>
+#include <moveit_visual_tools/moveit_visual_tools.h>
+
 void move_robot_to_pose(
     const std::shared_ptr<rclcpp::Node> node, 
     float x, float y, float z, float roll, float pitch, float yaw)
 {
-    auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, "manipulator");
+
+    std::shared_ptr<rclcpp::Executor> executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    
+    auto mgi_options = moveit::planning_interface::MoveGroupInterface::Options("manipulator", "robot_description", "/");
+
+    auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, mgi_options);
+    // auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, "manipulator");
+
     manipulator_move_group.setPlannerId("RRTConnect");  // default
     manipulator_move_group.setPlanningTime(30.0);
+
+    // const moveit::core::JointModelGroup* joint_model_group =
+    //   manipulator_move_group.getCurrentState()->getJointModelGroup("manipulator");
+
+    robot_model_loader::RobotModelLoader robot_model_loader(node);
+    const moveit::core::RobotModelPtr& kinematic_model = robot_model_loader.getModel();
+
+    moveit::core::RobotStatePtr robot_state(new moveit::core::RobotState(kinematic_model));
+    robot_state->setToDefaultValues();
+    const moveit::core::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup("manipulator");
+
+
+    namespace rvt = rviz_visual_tools;
+    moveit_visual_tools::MoveItVisualTools visual_tools(node, "world", "display_planned_path", manipulator_move_group.getRobotModel());
+    visual_tools.deleteAllMarkers();
+    visual_tools.loadRemoteControl();
+    Eigen::Isometry3d text_pose = Eigen::Isometry3d::Identity();
+    text_pose.translation().z() = 1.75;
+    visual_tools.publishText(text_pose, "MoveGroupInterface Tutorial", rvt::WHITE, rvt::XLARGE);
+    visual_tools.trigger();
 
     tf2::Quaternion quaternion;
     quaternion.setRPY(roll, pitch, yaw);
@@ -46,6 +77,18 @@ void move_robot_to_pose(
     moveit::planning_interface::MoveGroupInterface::Plan manipulator_plan;
     moveit::core::MoveItErrorCode plan_result = manipulator_move_group.plan(manipulator_plan);
 
+    /* Visualize the plan in RViz */
+    visual_tools.publishAxisLabeled(target_pose, "pose");
+    visual_tools.publishText(text_pose, "Pose Goal", rvt::WHITE, rvt::XLARGE);
+    visual_tools.publishTrajectoryLine(manipulator_plan.trajectory_, joint_model_group);
+    // visual_tools.publishPath(manipulator_plan.trajectory_, rvt::LIME_GREEN, rvt::SMALL);
+    // for (std::size_t i = 0; i < manipulator_plan.trajectory_.joint_trajectory.points.size(); ++i)
+    // {
+    //     // Visualize the target pose as a green sphere of size 0.03m
+    //     visual_tools.publishSphere(manipulator_plan.trajectory_.joint_trajectory.points[i].positions, 0.03, rvt::GREEN);
+    // }
+    visual_tools.trigger();
+
     if (plan_result == moveit::core::MoveItErrorCode::SUCCESS)
     {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "MANIPULATOR PLAN SUCCEEDED!");
@@ -65,11 +108,11 @@ int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
 
-    if (argc != 7)
-    {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Usage: <x> <y> <z> <roll> <pitch> <yaw>");
-        return 1;
-    }
+    // if (argc != 7)
+    // {
+    //     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Usage: <x> <y> <z> <roll> <pitch> <yaw>");
+    //     return 1;
+    // }
 
     float x = std::stof(argv[1]);
     float y = std::stof(argv[2]);
@@ -79,6 +122,16 @@ int main(int argc, char **argv)
     float yaw = std::stof(argv[6]);
 
     std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("interface_pose");
+
+    // rclcpp::NodeOptions node_options;
+    // node_options.automatically_declare_parameters_from_overrides(true);
+    // auto node = rclcpp::Node::make_shared("interface_pose", node_options);
+
+    // rclcpp::executors::SingleThreadedExecutor executor;
+    // executor.add_node(node);
+    // std::thread([&executor]() { executor.spin(); }).detach();
+
+
     move_robot_to_pose(node, x, y, z, roll, pitch, yaw);
 
     rclcpp::shutdown();

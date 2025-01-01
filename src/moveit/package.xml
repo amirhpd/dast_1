@@ -15,8 +15,19 @@
   <exec_depend>moveit_ros_move_group</exec_depend>
   <exec_depend>description</exec_depend>
 
+  <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend> 
+
+
   <depend>rclcpp</depend>
   <depend>moveit_ros_planning_interface</depend>
+  <depend>rviz_visual_tools</depend> 
+  <depend>graph_msgs</depend> 
+  <depend>moveit_visual_tools</depend>
+  <depend>geometric_shapes</depend>
+  <depend>moveit_core</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
