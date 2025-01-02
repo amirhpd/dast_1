@@ -29,13 +29,10 @@ void move_robot_to_pose(
 
     std::shared_ptr<rclcpp::Executor> executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
     
-    auto mgi_options = moveit::planning_interface::MoveGroupInterface::Options("manipulator", "robot_description", "/");
+    // auto mgi_options = moveit::planning_interface::MoveGroupInterface::Options("manipulator", "robot_description", "/");
 
-    auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, mgi_options);
+    // auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, mgi_options);
     // auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, "manipulator");
-
-    manipulator_move_group.setPlannerId("RRTConnect");  // default
-    manipulator_move_group.setPlanningTime(30.0);
 
     // const moveit::core::JointModelGroup* joint_model_group =
     //   manipulator_move_group.getCurrentState()->getJointModelGroup("manipulator");
@@ -45,7 +42,16 @@ void move_robot_to_pose(
 
     moveit::core::RobotStatePtr robot_state(new moveit::core::RobotState(kinematic_model));
     robot_state->setToDefaultValues();
-    const moveit::core::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup("manipulator");
+    // const moveit::core::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup("manipulator");
+    auto mgi_options = moveit::planning_interface::MoveGroupInterface::Options("manipulator", "robot_description", "/");
+    auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, mgi_options);
+    manipulator_move_group.setPlannerId("RRTConnect");  // default
+    manipulator_move_group.setPlanningTime(30.0);
+    // manipulator_move_group.setNumPlanningAttempts(10); 
+    // manipulator_move_group.setGoalTolerance(0.1);  
+
+    const moveit::core::JointModelGroup* joint_model_group =
+      manipulator_move_group.getCurrentState()->getJointModelGroup("manipulator");
 
 
     namespace rvt = rviz_visual_tools;
@@ -107,6 +113,14 @@ void move_robot_to_pose(
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
+    rclcpp::NodeOptions node_options;
+    node_options.automatically_declare_parameters_from_overrides(true);
+    node_options.append_parameter_override("use_sim_time", true);
+    auto node = rclcpp::Node::make_shared("interface_pose", node_options);
+
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(node);
+    std::thread([&executor]() { executor.spin(); }).detach();
 
     // if (argc != 7)
     // {
@@ -121,7 +135,7 @@ int main(int argc, char **argv)
     float pitch = std::stof(argv[5]);
     float yaw = std::stof(argv[6]);
 
-    std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("interface_pose");
+    // std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("interface_pose");
 
     // rclcpp::NodeOptions node_options;
     // node_options.automatically_declare_parameters_from_overrides(true);
@@ -135,4 +149,5 @@ int main(int argc, char **argv)
     move_robot_to_pose(node, x, y, z, roll, pitch, yaw);
 
     rclcpp::shutdown();
+    return 0;
 }

@@ -13,8 +13,14 @@ int main(int argc, char** argv)
     rclcpp::init(argc, argv);
     rclcpp::NodeOptions node_options;
     node_options.automatically_declare_parameters_from_overrides(true);
+    node_options.append_parameter_override("use_sim_time", true);
     auto node = rclcpp::Node::make_shared("get_state", node_options);
     const auto& LOGGER = node->get_logger();
+
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(node);
+    std::thread([&executor]() { executor.spin(); }).detach();
+
 
     robot_model_loader::RobotModelLoader robot_model_loader(node);
     const moveit::core::RobotModelPtr& kinematic_model = robot_model_loader.getModel();
@@ -28,7 +34,12 @@ int main(int argc, char** argv)
     auto mgi_options = moveit::planning_interface::MoveGroupInterface::Options("manipulator", "robot_description", "/");
     auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, mgi_options);
 
-    const moveit::core::JointModelGroup* joint_model_group =
-      manipulator_move_group.getCurrentState()->getJointModelGroup("manipulator");
+    moveit::core::RobotStatePtr current_state = manipulator_move_group.getCurrentState(10);
+
+    // const moveit::core::JointModelGroup* joint_model_group =
+    //   manipulator_move_group.getCurrentState()->getJointModelGroup("manipulator");
+
+    rclcpp::shutdown();
+    return 0;
 
 }

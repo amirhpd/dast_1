@@ -41,7 +41,8 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         parameters=[{"robot_description": robot_description_param,
-                     "use_sim_time": True}]
+                     "use_sim_time": True}],
+        # ros_arguments=["joint_states:=/joint_states"]
     )
 
     gazebo_launch = IncludeLaunchDescription(  # load launch file in launch file
@@ -54,12 +55,14 @@ def generate_launch_description():
         executable="create",
         output="screen",
         arguments=["-topic", "robot_description", "-name", "dast_1"],
+        parameters=[{"use_sim_time": True}]
     )
 
     gz_ros2_bridge = Node(  # network bridge of messages between ROS and Gazebo
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"]
+        arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"],
+        parameters=[{"use_sim_time": True}]
     )
 
     controller_launch = IncludeLaunchDescription(  # load the controller

@@ -42,25 +42,29 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         condition=UnlessCondition(is_sim_param),
-        parameters=[{"robot_description": robot_description_param}],
+        parameters=[{"robot_description": robot_description_param, "use_sim_time": True}],
+        ros_arguments=["joint_states:=/joint_states"]
     )
 
     controller_manager__spawner__joint_state_broadcaster__node = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        parameters=[{"use_sim_time": True, "robot_description": robot_description_param}],
     )
 
     controller_manager__spawner__manipulator_controller__node = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["manipulator_controller", "--controller-manager", "/controller_manager"],
+        parameters=[{"use_sim_time": True}],
     )
 
     # controller_manager__spawner__gripper_controller__node = Node(
     #     package="controller_manager",
     #     executable="spawner",
     #     arguments=["gripper_controller", "--controller-manager", "/controller_manager"],
+    #     parameters=[{"use_sim_time": True}],
     # )
 
     return LaunchDescription([
