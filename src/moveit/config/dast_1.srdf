@@ -26,6 +26,9 @@
         <joint name="joint_4" value="0"/>
         <joint name="joint_5" value="0"/>
     </group_state>
+    <end_effector name="end_effector" parent_link="tip" group="tip_group"/>
+    <virtual_joint name="virtual_joint" type="fixed" parent_frame="world" child_link="base_link" />
+    <virtual_joint name="virtual_joint_tip" type="fixed" parent_frame="gripper_link" child_link="tip" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="arm_1_link" link2="arm_2_link" reason="Adjacent"/>
     <disable_collisions link1="arm_1_link" link2="arm_3_link" reason="Never"/>
