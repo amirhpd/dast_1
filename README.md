@@ -1,4 +1,4 @@
-# Robot Manipulator
+# DAST-1
 
 ## About
 Dast_1 is my 5-DOF serial manipulator.
