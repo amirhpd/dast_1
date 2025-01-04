@@ -1,0 +1,10 @@
+Plan visualization did not work.
+interface_pose.cpp code modified to show the plan.
+Different approaches are tried out. eg. visual_tools
+One obstacle was to make the getCurrentState work. It finally worked by adding "use_sim_time": True to all nodes in launch files, 
+and adding the code to spin once to the interface file.
+The /display_planned_path topic gets values, but still nothing is visible in rviz.
+Sources:
+https://moveit.picknik.ai/humble/doc/examples/move_group_interface/move_group_interface_tutorial.html
+https://github.com/moveit/moveit2/issues/496
+
