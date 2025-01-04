@@ -1,5 +1,7 @@
 # DAST-1
 
+**Branch Info** see warehouse_notes.txt
+
 ## About
 Dast_1 is my 5-DOF serial manipulator.
 * Mechanical parts are built by 3D printing.
