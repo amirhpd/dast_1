@@ -1,0 +1,14 @@
+Warehouse tool did not work as expected.
+done so far:
+warehouse-ros-sqlite installed: sudo apt-get install ros-humble-warehouse-ros-sqlite
+The moveit launch file modified.
+In rviz, set the host manually to home/amir/ros_projects/dast_1_ws/src/moveit/warehouse/db.sqlite
+and connect. By first connection, it creates the db.sqlite automatically.
+It connects, and Stored states works, if a scene object is added at the time of storing, it will also show up, but it disappears after executing the plan.
+Stored scenes won't work. It throws:
+[moveit_ros_visualization.motion_planning_frame_objects]: Prepare statement for removeMessages() failed no such column: M_planning_scene_id
+It is possible to view the content of db.sqlite file using sqlitebrowser software.
+Attempts to use mangoDb failed. ros-humble-warehouse-ros-mango could not be installed by apt-get, and installing from github source didn't work.
+Only this documentaion found on web: https://moveit.picknik.ai/humble/doc/examples/persistent_scenes_and_states/persistent_scenes_and_states.html
+---
+It is possible to store the scene objects using export, but it only works if export is done before attaching the object to a frame and before publishing the object.

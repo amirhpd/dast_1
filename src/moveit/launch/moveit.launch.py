@@ -31,11 +31,21 @@ def generate_launch_description():
         .planning_pipelines(pipelines=["ompl", "chomp", "pilz_industrial_motion_planner"])
         .to_moveit_configs()
     )
+    warehouse_ros_config = {
+        "warehouse_plugin": "warehouse_ros_sqlite::DatabaseConnection",
+        "warehouse_port": 33829,
+        "warehouse_host": "localhost",
+}
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
-        parameters=[moveit_config.to_dict(), {"use_sim_time": is_sim_param}, {"publish_robot_description_semantic": True}],
+        parameters=[
+            moveit_config.to_dict(), 
+            {"use_sim_time": is_sim_param}, 
+            {"publish_robot_description_semantic": True}, 
+            warehouse_ros_config
+            ],
         arguments=["--ros-args", "--log-level", "info"],
     )
 
@@ -52,13 +62,14 @@ def generate_launch_description():
             moveit_config.robot_description_kinematics,
             moveit_config.robot_description,
             moveit_config.robot_description_semantic,
+            warehouse_ros_config
         ],
     )
 
     return LaunchDescription([
         is_sim_arg,
         move_group_node,
-        rviz_node
+        rviz_node,
     ])
 
 
