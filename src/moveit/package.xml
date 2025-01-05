@@ -14,9 +14,14 @@
   <exec_depend>moveit_configs_utils</exec_depend>
   <exec_depend>moveit_ros_move_group</exec_depend>
   <exec_depend>description</exec_depend>
+  <exec_depend>setuptools</exec_depend>
+  <exec_depend>pypcd4</exec_depend>
+  <exec_depend>numpy</exec_depend>
 
   <depend>rclcpp</depend>
   <depend>moveit_ros_planning_interface</depend>
+  <depend>pcl_conversions</depend>
+  <depend>pcl_ros</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
