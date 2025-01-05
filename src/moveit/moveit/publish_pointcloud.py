@@ -12,18 +12,16 @@ class PCDPublisher(Node):
     def __init__(self):
         super().__init__('pcd_publisher')
         # self.set_parameters([Parameter('use_sim_time', Parameter.Type.BOOL, True)])
-        self.publisher_ = self.create_publisher(PointCloud2, '/point_cloud', 30)
+        self.publisher_ = self.create_publisher(PointCloud2, '/point_cloud', 10)
         self.timer = self.create_timer(1.0, self.publish_pcd)
 
     def publish_pcd(self):
         file_path = 'points.pcd'
         self.get_logger().info(f"Loading PCD file: {file_path}")
 
-        # Load PCD file
         pc = PointCloud.from_path(file_path)
         points = pc.numpy(("x", "y", "z"))
 
-        # Create PointCloud2 message
         msg = PointCloud2()
         msg.header.frame_id = "world"
         msg.height = 1
