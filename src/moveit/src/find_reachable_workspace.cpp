@@ -84,22 +84,56 @@ void plan_pose(
 
 void brute_force_workspace(const std::shared_ptr<rclcpp::Node> node)
 {
+    auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, "manipulator");
+    manipulator_move_group.setPlannerId("RRTConnect");  // default
+    manipulator_move_group.setPlanningTime(5.0);
+
     int counter = 0;
-    for (float x = -6.0; x < 6.0; x += 0.5)
+    for(float roll = -3.14; roll < 3.14; roll += 1.256)
     {
-        for (float y = -6.0; y < 6.0; y += 0.5)
+        for (float pitch = -3.14; pitch < 3.14; pitch += 1.256)
         {
-            for (float z = 0.2; z < 7.4; z += 0.5)
+            for (float yaw = -3.14; yaw < 3.14; yaw += 1.256)
             {
-                for(float roll = -3.14; roll < 3.14; roll += 0.2512)
+                for (float z = 0.4; z < 7.2; z += 0.72)
                 {
-                    for (float pitch = -3.14; pitch < 3.14; pitch += 0.2512)
+                    for (float x = -4.2; x < 4.2; x += 1.2) 
                     {
-                        for (float yaw = -3.14; yaw < 3.14; yaw += 0.2512)
+                        for (float y = -4.2; y < 4.2; y += 1.2) 
                         {
-                            plan_pose(node, x, y, z, roll, pitch, yaw);
+                            // 2.094 -1.345 0.038 -3.053 0.000 1.000
+                            tf2::Quaternion quaternion;
+                            quaternion.setRPY(roll, pitch, yaw);
+                            geometry_msgs::msg::Quaternion quaternion_msg = tf2::toMsg(quaternion);
+                            geometry_msgs::msg::Pose target_pose;
+                            target_pose.orientation = quaternion_msg;
+                            target_pose.position.x = x;
+                            target_pose.position.y = y;
+                            target_pose.position.z = z;
+
+                            bool manipulator_at_goal = manipulator_move_group.setPoseTarget(target_pose);
+
+                            if (!manipulator_at_goal)
+                            {
+                                RCLCPP_WARN(rclcpp::get_logger(node_name), "Invalid goal %i, skipping the point: x=%f, y=%f, z=%f, r=%f, p=%f, y=%f,", counter, x, y, z, roll, pitch, yaw);
+                                counter++;
+                                continue; 
+                            }
+                                moveit::planning_interface::MoveGroupInterface::Plan manipulator_plan;
+                                moveit::core::MoveItErrorCode plan_result = manipulator_move_group.plan(manipulator_plan);
+                            if (plan_result == moveit::core::MoveItErrorCode::SUCCESS)
+                            {
+                                store_to_point_cloud(target_pose);
+                            }
+                            else
+                            {
+                                RCLCPP_ERROR(rclcpp::get_logger(node_name), "Plan %i failed, skipping the point: x=%f, y=%f, z=%f, r=%f, p=%f, y=%f,", counter, x, y, z, roll, pitch, yaw);
+                                counter++;
+                                continue;
+                                // RCLCPP_ERROR(rclcpp::get_logger(node_name), moveit::core::error_code_to_string(plan_result).c_str());
+                            }
                             counter++;
-                            RCLCPP_INFO(rclcpp::get_logger(node_name), "Point %d", counter);
+                            RCLCPP_INFO(rclcpp::get_logger(node_name), "Point no. %d stored.", counter);
                         }
                     }
                 }
@@ -120,3 +154,10 @@ int main(int argc, char **argv)
 
     rclcpp::shutdown();
 }
+
+// This approach takes very long. for each wrong pose, plan function should reach to timeout.
+// Another approach to test:
+// Brute force on joint angles, so all combinations reach to a valid pose. 
+// Then dothe fw kinematics somehow, to get the tip's pose
+// fw kinematics can probably be done fast without moveit,
+// or use movit plan but get the tip's pose from the plan fn without moving the robot.
