@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# Reads the point-cloud from the file and publishes to /point_cloud topic
+# To run:
+# ros2 run moveit publish_pointcloud.py 
 import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
