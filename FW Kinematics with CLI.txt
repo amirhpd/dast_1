@@ -14,6 +14,6 @@ it constantly publishes the msgs that define the position of each frame relative
 ros2 run tf2_tools view_frames
 generates a graph of the frames and their connections
 
-ros2 run tf2_ros tf2_echo world gripper_link
+ros2 run tf2_ros tf2_echo world tip
 gives translation and rotation values of between the given frames
 if the first and last frames are passed, it actually solves the fw kinematics problem
