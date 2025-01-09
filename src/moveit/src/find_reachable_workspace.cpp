@@ -1,5 +1,8 @@
 // Performs a brute force search on joint angles to find a workspace reachable by the manipulator.
 // The workspace is stored in a PointCloud file.
+// To run:
+// ros2 run moveit find_reachable_workspace
+// ros2 run moveit publish_pointcloud.py 
 
 #include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
