@@ -1,17 +1,15 @@
+// Performs a brute force search on joint angles to find a workspace reachable by the manipulator.
+// The workspace is stored in a PointCloud file.
+
 #include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
-
 #include <geometry_msgs/msg/pose.hpp>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <tf2_ros/buffer.h>
-
 #include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-#include <sensor_msgs/msg/point_cloud2.hpp>
+
 
 const std::string filename = "points.pcd";
 const std::string node_name = "find_reachable_workspace";
+const float pi = 3.14159265359f;
 
 
 void store_to_point_cloud(const geometry_msgs::msg::Pose &target_pose)
@@ -19,7 +17,7 @@ void store_to_point_cloud(const geometry_msgs::msg::Pose &target_pose)
     pcl::PointCloud<pcl::PointXYZ> cloud;
 
     if (pcl::io::loadPCDFile<pcl::PointXYZ>(filename, cloud) == -1) {
-        RCLCPP_ERROR(rclcpp::get_logger(node_name), "Couldn't read file %s. Creating a new file instead.\n", filename.c_str());
+        RCLCPP_WARN(rclcpp::get_logger(node_name), "Couldn't read file %s. Creating a new file instead.\n", filename.c_str());
     }
 
     pcl::PointXYZ pcl_point;
@@ -41,99 +39,78 @@ void store_to_point_cloud(const geometry_msgs::msg::Pose &target_pose)
 
 }
 
-
-void plan_pose(
-    const std::shared_ptr<rclcpp::Node> node, 
-    float x, float y, float z, float roll, float pitch, float yaw)
+geometry_msgs::msg::Pose get_pose_from_trajectory(
+                                                const moveit::planning_interface::MoveGroupInterface::Plan &plan,
+                                                const moveit::core::RobotStatePtr &robot_state,
+                                                const std::string &end_effector_link
+                                                )
 {
-    auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, "manipulator");
-    manipulator_move_group.setPlannerId("RRTConnect");  // default
-    manipulator_move_group.setPlanningTime(30.0);
-
-    tf2::Quaternion quaternion;
-    quaternion.setRPY(roll, pitch, yaw);
-    geometry_msgs::msg::Quaternion quaternion_msg = tf2::toMsg(quaternion);
-    geometry_msgs::msg::Pose target_pose;
-    target_pose.orientation = quaternion_msg;
-    target_pose.position.x = x;
-    target_pose.position.y = y;
-    target_pose.position.z = z;
-
-    bool manipulator_at_goal = manipulator_move_group.setPoseTarget(target_pose);
-
-    if (!manipulator_at_goal)
+    const auto &trajectory_points = plan.trajectory_.joint_trajectory.points;
+    if (trajectory_points.empty())
     {
-        RCLCPP_WARN(rclcpp::get_logger(node_name), "INVALID GOAL!");
-        return;
+        RCLCPP_ERROR(rclcpp::get_logger(node_name), "Trajectory is empty!");
+        return geometry_msgs::msg::Pose();
     }
+    const auto &last_point = trajectory_points.back();
+    const std::vector<double> &joint_positions = last_point.positions;
+    robot_state->setVariablePositions(joint_positions);
 
-    moveit::planning_interface::MoveGroupInterface::Plan manipulator_plan;
-    moveit::core::MoveItErrorCode plan_result = manipulator_move_group.plan(manipulator_plan);
+    geometry_msgs::msg::Pose end_effector_pose;
+    const Eigen::Isometry3d &end_effector_state = robot_state->getGlobalLinkTransform(end_effector_link);
 
-    if (plan_result == moveit::core::MoveItErrorCode::SUCCESS)
-    {
-        store_to_point_cloud(target_pose);
-    }
-    else
-    {
-        RCLCPP_ERROR(rclcpp::get_logger(node_name), "Plan failed, skipping the point: x=%f, y=%f, z=%f", target_pose.position.x, target_pose.position.y, target_pose.position.z);
-        // RCLCPP_ERROR(rclcpp::get_logger(node_name), moveit::core::error_code_to_string(plan_result).c_str());
-        return;
-    }
+    end_effector_pose.position.x = end_effector_state.translation().x();
+    end_effector_pose.position.y = end_effector_state.translation().y();
+    end_effector_pose.position.z = end_effector_state.translation().z();
+
+    Eigen::Quaterniond orientation(end_effector_state.rotation());
+    end_effector_pose.orientation.x = orientation.x();
+    end_effector_pose.orientation.y = orientation.y();
+    end_effector_pose.orientation.z = orientation.z();
+    end_effector_pose.orientation.w = orientation.w();
+
+    return end_effector_pose;
 }
 
-void brute_force_workspace(const std::shared_ptr<rclcpp::Node> node)
+void brute_force_workspace(const std::shared_ptr<rclcpp::Node> &node)
 {
     auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, "manipulator");
     manipulator_move_group.setPlannerId("RRTConnect");  // default
     manipulator_move_group.setPlanningTime(5.0);
 
+    float resolution = 0.62831853071;
     int counter = 0;
-    for(float roll = -3.14; roll < 3.14; roll += 1.256)
-    {
-        for (float pitch = -3.14; pitch < 3.14; pitch += 1.256)
-        {
-            for (float yaw = -3.14; yaw < 3.14; yaw += 1.256)
-            {
-                for (float z = 0.4; z < 7.2; z += 0.72)
-                {
-                    for (float x = -4.2; x < 4.2; x += 1.2) 
-                    {
-                        for (float y = -4.2; y < 4.2; y += 1.2) 
+    for(float joint_1 = -pi/2; joint_1 < pi/2; joint_1 += resolution/4){
+        for(float joint_2 = -pi/2; joint_2 < pi/2; joint_2 += resolution){
+            for(float joint_3 = -pi/2; joint_3 < pi/2; joint_3 += resolution){
+                for(float joint_4 = -pi/2; joint_4 < pi/2; joint_4 += resolution){
+                    for(float joint_5 = -pi/2; joint_5 < pi/2; joint_5 += resolution){
+                        std::vector<double> joint_set {joint_1, joint_2, joint_3, joint_4, joint_5};
+                        bool manipulator_at_goal = manipulator_move_group.setJointValueTarget(joint_set);
+                        if (!manipulator_at_goal)
                         {
-                            // 2.094 -1.345 0.038 -3.053 0.000 1.000
-                            tf2::Quaternion quaternion;
-                            quaternion.setRPY(roll, pitch, yaw);
-                            geometry_msgs::msg::Quaternion quaternion_msg = tf2::toMsg(quaternion);
-                            geometry_msgs::msg::Pose target_pose;
-                            target_pose.orientation = quaternion_msg;
-                            target_pose.position.x = x;
-                            target_pose.position.y = y;
-                            target_pose.position.z = z;
-
-                            bool manipulator_at_goal = manipulator_move_group.setPoseTarget(target_pose);
-
-                            if (!manipulator_at_goal)
-                            {
-                                RCLCPP_WARN(rclcpp::get_logger(node_name), "Invalid goal %i, skipping the point: x=%f, y=%f, z=%f, r=%f, p=%f, y=%f,", counter, x, y, z, roll, pitch, yaw);
-                                counter++;
-                                continue; 
-                            }
-                                moveit::planning_interface::MoveGroupInterface::Plan manipulator_plan;
-                                moveit::core::MoveItErrorCode plan_result = manipulator_move_group.plan(manipulator_plan);
-                            if (plan_result == moveit::core::MoveItErrorCode::SUCCESS)
-                            {
-                                store_to_point_cloud(target_pose);
-                            }
-                            else
-                            {
-                                RCLCPP_ERROR(rclcpp::get_logger(node_name), "Plan %i failed, skipping the point: x=%f, y=%f, z=%f, r=%f, p=%f, y=%f,", counter, x, y, z, roll, pitch, yaw);
-                                counter++;
-                                continue;
-                                // RCLCPP_ERROR(rclcpp::get_logger(node_name), moveit::core::error_code_to_string(plan_result).c_str());
-                            }
+                            RCLCPP_ERROR(rclcpp::get_logger(node_name), "Plan %i failed.", counter);
                             counter++;
-                            RCLCPP_INFO(rclcpp::get_logger(node_name), "Point no. %d stored.", counter);
+                            continue; 
+                        }
+                        moveit::planning_interface::MoveGroupInterface::Plan manipulator_plan;
+                        moveit::core::MoveItErrorCode plan_result = manipulator_move_group.plan(manipulator_plan);
+                        if (plan_result == moveit::core::MoveItErrorCode::SUCCESS)
+                        {
+                            geometry_msgs::msg::Pose pose = get_pose_from_trajectory(
+                                manipulator_plan, 
+                                manipulator_move_group.getCurrentState(), 
+                                manipulator_move_group.getEndEffectorLink()
+                                );
+                            store_to_point_cloud(pose);
+                            // manipulator_move_group.move()
+                            counter++;
+                        }
+                        else
+                        {
+                            RCLCPP_ERROR(rclcpp::get_logger(node_name), "Point no. %d stored.", counter);
+                            counter++;
+                            continue;
+                            // RCLCPP_ERROR(rclcpp::get_logger(node_name), moveit::core::error_code_to_string(plan_result).c_str());
                         }
                     }
                 }
@@ -150,14 +127,11 @@ int main(int argc, char **argv)
 
     std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared(node_name, node_options);
 
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(node);
+    std::thread([&executor]() { executor.spin(); }).detach();
+
     brute_force_workspace(node);
 
     rclcpp::shutdown();
 }
-
-// This approach takes very long. for each wrong pose, plan function should reach to timeout.
-// Another approach to test:
-// Brute force on joint angles, so all combinations reach to a valid pose. 
-// Then dothe fw kinematics somehow, to get the tip's pose
-// fw kinematics can probably be done fast without moveit,
-// or use movit plan but get the tip's pose from the plan fn without moving the robot.
