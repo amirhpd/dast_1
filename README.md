@@ -1,5 +1,10 @@
 # DAST-1
 
+**Branch Info:**
+* Discovers the reachable workspace by performing a brute-force search on joint angles.
+* Saves the result in a point-cloud.
+* Contains a Python node to publish the point-cloud, so that it can be represented in rviz.
+
 ## About
 Dast_1 is my 5-DOF serial manipulator.
 * Mechanical parts are built by 3D printing.
