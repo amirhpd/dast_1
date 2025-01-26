@@ -14,21 +14,21 @@ find_package(msgs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(rclpy REQUIRED)
 
-add_library(task_server SHARED src/task_server.cpp)
-target_include_directories(task_server PRIVATE
+add_library(task_server_angle SHARED src/task_server_angle.cpp)
+target_include_directories(task_server_angle PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_compile_definitions(task_server
-  PRIVATE "TASK_SERVER_CPP_BUILDING_DLL")
-ament_target_dependencies(task_server
+target_compile_definitions(task_server_angle
+  PRIVATE "TASK_SERVER_ANGLE_CPP_BUILDING_DLL")
+ament_target_dependencies(task_server_angle
   "msgs"
   "rclcpp"
   "rclcpp_action"
   "rclcpp_components"
   "moveit_ros_planning_interface")
-rclcpp_components_register_node(task_server 
-  PLUGIN "task::TaskServer" 
-  EXECUTABLE task_server_node
+rclcpp_components_register_node(task_server_angle 
+  PLUGIN "task::TaskServerAngle" 
+  EXECUTABLE task_server_angle_node
 )
 
 ament_python_install_package(${PROJECT_NAME})
@@ -39,7 +39,7 @@ install(
 )
 
 install(TARGETS 
-  task_server
+  task_server_angle
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
