@@ -2,6 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dast_1">
 
     <!-- VARIABLES -->
+    <xacro:arg name="is_sim" default="true"/>
     <xacro:property name="path" value="package://description/meshes" />
     <xacro:property name="scale" value="0.01 0.01 0.01" />
     <xacro:property name="PI" value="3.14159265359" />

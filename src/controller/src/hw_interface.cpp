@@ -144,11 +144,11 @@ hardware_interface::return_type HwInterface::write(const rclcpp::Time &time, con
   int joint_5 = static_cast<int>(((position_commands_.at(4) + (M_PI / 2)) * 180) / M_PI);
 
   std::string msg = 
-    "J1" + std::to_string(joint_1) + "-" +
-    "J2" + std::to_string(joint_2) + "-" +
-    "J3" + std::to_string(joint_3) + "-" +
-    "J4" + std::to_string(joint_4) + "-" +
-    "J5" + std::to_string(joint_5);  
+    std::to_string(joint_1) + "-" +
+    std::to_string(joint_2) + "-" +
+    std::to_string(joint_3) + "-" +
+    std::to_string(joint_4) + "-" +
+    std::to_string(joint_5);  
 
   try
   {
@@ -168,3 +168,4 @@ hardware_interface::return_type HwInterface::write(const rclcpp::Time &time, con
 }
 
 }  // namespace hw_controller
+PLUGINLIB_EXPORT_CLASS(hw_controller::HwInterface, hardware_interface::SystemInterface)

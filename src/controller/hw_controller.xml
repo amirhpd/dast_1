@@ -1,6 +1,6 @@
 <library path="controller">
-    <class name="controller/HwInterface"
-      type="controller::HwInterface"
+    <class name="hw_controller/HwInterface"
+      type="hw_controller::HwInterface"
       base_class_type="hardware_interface::SystemInterface"
     >
       <description>
