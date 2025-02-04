@@ -1,0 +1,10 @@
+<library path="controller">
+    <class name="hw_controller/HwInterface"
+      type="hw_controller::HwInterface"
+      base_class_type="hardware_interface::SystemInterface"
+    >
+      <description>
+        Hardware Interface for serial comm. with Nano33
+      </description>
+    </class>
+  </library>

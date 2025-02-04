@@ -5,10 +5,20 @@
 
         <xacro:property name="PI" value="3.14159265359" />
 
-        <hardware>
-            <plugin>ign_ros2_control/IgnitionSystem</plugin>
-        </hardware>
+        <!-- Simulation/Hardware -->
+        <xacro:if value="$(arg is_sim)">
+            <hardware>
+                <plugin>ign_ros2_control/IgnitionSystem</plugin>
+            </hardware>
+        </xacro:if>
+        <xacro:unless value="$(arg is_sim)">
+            <hardware>
+                <plugin>hw_controller/HwInterface</plugin>
+                <param name="port">/dev/ttyACM0</param>
+            </hardware>        
+        </xacro:unless>
 
+        <!-- Joints -->
         <joint name="joint_1">
             <command_interface name="position">
             <param name="min">-${PI / 2}</param>
