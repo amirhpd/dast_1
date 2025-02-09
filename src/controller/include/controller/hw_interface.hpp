@@ -34,6 +34,7 @@ private:
   std::vector<double> position_commands_;
   std::vector<double> prev_position_commands_;
   std::vector<double> position_states_;
+  std::vector<std::string> _split_string(const std::string& str, char delimiter);
 };
 
 } // namespace hw_controller
