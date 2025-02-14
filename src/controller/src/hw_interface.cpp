@@ -125,8 +125,36 @@ CallbackReturn HwInterface::on_deactivate(const rclcpp_lifecycle::State &previou
 
 hardware_interface::return_type HwInterface::read(const rclcpp::Time &time, const rclcpp::Duration &period)
 {
-  // Open loop control. No feedback from the hardware.
-  position_states_ = position_commands_;
+  // simulated closed-loop feedback
+  std::string feedback;
+  try
+  {
+    nano33_.Read(feedback, 0, 100);
+  }
+  catch(const std::exception &e)
+  {
+    if (std::string(e.what()) != "Read timeout")
+    {
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("HwInterface"), "Feedback error: " << e.what());
+      return hardware_interface::return_type::ERROR;
+    }
+    // waiting for feedback
+  }
+  
+  if (!feedback.empty() && feedback[0] == 'F')
+  {
+    std::vector<std::string> feedbacks = _split_string(feedback, '-');
+    feedbacks[0].erase(0, 1);
+    for (size_t i = 0; i < feedbacks.size(); i++)
+    {
+      position_states_[i] = (std::stod(feedbacks[i]) * M_PI / 180);
+    }
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("HwInterface"), "Feedback: " << feedback);
+  }
+  
+  // open-loop feedback
+  // position_states_ = position_commands_;
+
   return hardware_interface::return_type::OK;
 }
 
@@ -137,11 +165,11 @@ hardware_interface::return_type HwInterface::write(const rclcpp::Time &time, con
     return hardware_interface::return_type::OK;
   }
 
-  int joint_1 = static_cast<int>(((position_commands_.at(0) + (M_PI / 2)) * 180) / M_PI);
-  int joint_2 = static_cast<int>(((position_commands_.at(1) + (M_PI / 2)) * 180) / M_PI);
-  int joint_3 = static_cast<int>(((position_commands_.at(2) + (M_PI / 2)) * 180) / M_PI);
-  int joint_4 = static_cast<int>(((position_commands_.at(3) + (M_PI / 2)) * 180) / M_PI);
-  int joint_5 = static_cast<int>(((position_commands_.at(4) + (M_PI / 2)) * 180) / M_PI);
+  int joint_1 = static_cast<int>(position_commands_.at(0) * (180/M_PI));
+  int joint_2 = static_cast<int>(position_commands_.at(1) * (180/M_PI));
+  int joint_3 = static_cast<int>(position_commands_.at(2) * (180/M_PI));
+  int joint_4 = static_cast<int>(position_commands_.at(3) * (180/M_PI));
+  int joint_5 = static_cast<int>(position_commands_.at(4) * (180/M_PI));
 
   std::string msg = 
     std::to_string(joint_1) + "-" +
@@ -165,6 +193,21 @@ hardware_interface::return_type HwInterface::write(const rclcpp::Time &time, con
   prev_position_commands_ = position_commands_;
 
   return hardware_interface::return_type::OK;
+}
+
+std::vector<std::string> HwInterface::_split_string(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    size_t start = 0;
+    size_t end = str.find(delimiter);
+
+    while (end != std::string::npos) {
+        tokens.push_back(str.substr(start, end - start));
+        start = end + 1;  // Move past the delimiter
+        end = str.find(delimiter, start);
+    }
+    tokens.push_back(str.substr(start)); // Add the last token
+
+    return tokens;
 }
 
 }  // namespace hw_controller

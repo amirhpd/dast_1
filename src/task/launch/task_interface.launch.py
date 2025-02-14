@@ -23,6 +23,7 @@ def generate_launch_description():
     task_server_angle_node = Node(
         package="task",
         executable="task_server_angle_node",
+        name="task_server_angle_node",
         parameters=[{"use_sim_time": is_sim_param}]
     )
 

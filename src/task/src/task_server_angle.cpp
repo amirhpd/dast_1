@@ -55,7 +55,6 @@ private:
   void acceptedCallback(
       const std::shared_ptr<rclcpp_action::ServerGoalHandle<msgs::action::TaskAction>> goal_handle)
   {
-    // this needs to return quickly to avoid blocking the executor, so spin up a new thread
     std::thread{ std::bind(&TaskServerAngle::execute, this, _1), goal_handle }.detach();
   }
 
@@ -68,7 +67,7 @@ private:
     if(!manipulator_move_group_){
       manipulator_move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(shared_from_this(), "manipulator");
     }
-
+  
     if (goal_handle->get_goal()->task_number == 0)
     {
       manipulator_joint_goal_ = {0.0, 0.785, 0.716, 1.57, 0.0};
