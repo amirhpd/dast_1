@@ -19,27 +19,6 @@ public:
   explicit TaskServerAngle(const rclcpp::NodeOptions& options = rclcpp::NodeOptions())
     : Node("task_server_angle", options)
   {
-
-    // this->declare_parameter<std::vector<std::string>>("goal_values_1", std::vector<std::string>{});
-    // this->get_parameter("goal_values_1", goal_values_1_);
-
-
-    // std::string package_share_dir = ament_index_cpp::get_package_share_directory("task");
-    // std::string yaml_file_path = package_share_dir + "/config/tasks.yaml";
-    // RCLCPP_INFO_STREAM(get_logger(), "PATH: " << yaml_file_path);
-    // try { 
-    //   YAML::Node config = YAML::LoadFile(yaml_file_path);
-    // }
-    // catch (const std::exception &e){
-    //   RCLCPP_ERROR(get_logger(), "YAML ERROR: %s", e.what());
-    // }
-    // std::vector<int> task_1 = config["task_1"].as<std::vector<int>>();
-    // this->declare_parameter("task_1", task_1);
-    // RCLCPP_INFO(get_logger(), "Task 1 Settings: [%d, %d, %d, %d, %d]", task_1[0], task_1[1], task_1[2], task_1[3], task_1[4]);
-
-
-
-
     RCLCPP_INFO(get_logger(), "Starting the Server");
     action_server_ = rclcpp_action::create_server<msgs::action::TaskAction>(
         this, "task_server_angle", 
@@ -49,7 +28,6 @@ public:
   }
 
 private:
-  // std::vector<std::string> goal_values_1_;
   rclcpp_action::Server<msgs::action::TaskAction>::SharedPtr action_server_;
   std::shared_ptr<moveit::planning_interface::MoveGroupInterface> manipulator_move_group_;
   std::vector<double> manipulator_joint_goal_;
@@ -89,22 +67,7 @@ private:
     if(!manipulator_move_group_){
       manipulator_move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(shared_from_this(), "manipulator");
     }
-    
-    // std::ostringstream oss;
-    // for (double val : goal_values_1_) {
-    //     oss << val << " ";
-    // }
-    // RCLCPP_INFO(get_logger(), "Vector Values-------------------------------------------------: %s", oss.str().c_str());
-    // RCLCPP_INFO(get_logger(), "goal_values_1_.size() ---------------------------------------------------------------: %zu", goal_values_1_.size());
-
-
-
-
-
-    // std::vector<long int> task_1 = this->get_parameter("task_1").as_integer_array();
-    // RCLCPP_INFO(get_logger(), "Task 1 Settings: [%ld, %ld, %ld, %ld, %ld]",
-    //                 task_1[0], task_1[1], task_1[2], task_1[3], task_1[4]);
-
+  
     if (goal_handle->get_goal()->task_number == 0)
     {
       manipulator_joint_goal_ = {0.0, 0.785, 0.716, 1.57, 0.0};
