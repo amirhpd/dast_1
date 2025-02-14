@@ -13,6 +13,7 @@ find_package(rclcpp_components REQUIRED)
 find_package(msgs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(rclpy REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 add_library(task_server_angle SHARED src/task_server_angle.cpp)
 target_include_directories(task_server_angle PRIVATE
@@ -25,7 +26,8 @@ ament_target_dependencies(task_server_angle
   "rclcpp"
   "rclcpp_action"
   "rclcpp_components"
-  "moveit_ros_planning_interface")
+  "moveit_ros_planning_interface"
+  "yaml-cpp")
 rclcpp_components_register_node(task_server_angle 
   PLUGIN "task::TaskServerAngle" 
   EXECUTABLE task_server_angle_node
@@ -44,6 +46,8 @@ install(TARGETS
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
+
+install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
 install(PROGRAMS
   # ${PROJECT_NAME}/some_python_file.py
