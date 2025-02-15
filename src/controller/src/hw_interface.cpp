@@ -143,7 +143,7 @@ hardware_interface::return_type HwInterface::read(const rclcpp::Time &time, cons
   
   if (!feedback.empty() && feedback[0] == 'F')
   {
-    std::vector<std::string> feedbacks = _split_string(feedback, '-');
+    std::vector<std::string> feedbacks = _split_string(feedback, ',');
     feedbacks[0].erase(0, 1);
     for (size_t i = 0; i < feedbacks.size(); i++)
     {
@@ -172,10 +172,10 @@ hardware_interface::return_type HwInterface::write(const rclcpp::Time &time, con
   int joint_5 = static_cast<int>(position_commands_.at(4) * (180/M_PI));
 
   std::string msg = 
-    std::to_string(joint_1) + "-" +
-    std::to_string(joint_2) + "-" +
-    std::to_string(joint_3) + "-" +
-    std::to_string(joint_4) + "-" +
+    std::to_string(joint_1) + "," +
+    std::to_string(joint_2) + "," +
+    std::to_string(joint_3) + "," +
+    std::to_string(joint_4) + "," +
     std::to_string(joint_5);  
 
   try
