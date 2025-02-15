@@ -50,14 +50,14 @@ int main(int argc, char **argv)
 
     if (argc != 6)
         {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Usage: <joint_1> <joint_2> <joint_3> <joint_4> <joint_5>");
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Usage: <joint_1> <joint_2> <joint_3> <joint_4> <joint_5> [degrees]");
         return 1;
         }
-    float joint_1 = std::stof(argv[1]);
-    float joint_2 = std::stof(argv[2]);
-    float joint_3 = std::stof(argv[3]);
-    float joint_4 = std::stof(argv[4]);
-    float joint_5 = std::stof(argv[5]);
+    float joint_1 = std::stof(argv[1]) * (M_PI / 180);
+    float joint_2 = std::stof(argv[2]) * (M_PI / 180);
+    float joint_3 = std::stof(argv[3]) * (M_PI / 180);
+    float joint_4 = std::stof(argv[4]) * (M_PI / 180);
+    float joint_5 = std::stof(argv[5]) * (M_PI / 180);
 
     std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("interface_angle");
     move_robot_by_angle(node, joint_1, joint_2, joint_3, joint_4, joint_5);

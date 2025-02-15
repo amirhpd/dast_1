@@ -23,13 +23,13 @@
     <link name="base_link">
         <xacro:default_inertial mass="0.2"/>
         <visual>
-            <origin rpy="-${PI/2} 0 0" xyz="0 0 0"/>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
                 <mesh filename="${path}/base.stl" scale="${scale}"/>
             </geometry>
         </visual>
         <collision>
-            <origin rpy="-${PI/2} 0 0" xyz="0 0 0"/>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
                 <mesh filename="${path}/base_collision.stl" scale="${scale}"/>
             </geometry>              
@@ -39,7 +39,7 @@
     <link name="rotary_link">
         <xacro:default_inertial mass="0.05"/>
         <visual>
-            <origin rpy="-${PI/2} 0 -${PI/2}" xyz="0 0 0"/>
+            <origin rpy="0 0 ${PI/2}" xyz="0 0 0"/>
             <geometry>
                 <mesh filename="${path}/rotary.stl" scale="${scale}"/>
             </geometry>
