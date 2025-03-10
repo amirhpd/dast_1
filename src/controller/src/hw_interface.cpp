@@ -81,9 +81,9 @@ CallbackReturn HwInterface::on_activate(const rclcpp_lifecycle::State &previous_
 {
   RCLCPP_INFO(rclcpp::get_logger("HwInterface"), "Activating hardware interface..");
 
-  position_commands_ = { 0.0, 0.0, 0.0, 0.0, 0.0 };
-  prev_position_commands_ = { 0.0, 0.0, 0.0, 0.0, 0.0 };
-  position_states_ = { 0.0, 0.0, 0.0, 0.0, 0.0 };
+  position_commands_ = { 0.0, 0.0, 1.571, 1.484, 0.0 };
+  prev_position_commands_ = { 0.0, 0.0, 1.571, 1.484, 0.0 };
+  position_states_ = { 0.0, 0.0, 1.571, 1.484, 0.0 };
 
   try
   {

@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 5 # Hz
+    update_rate: 30 # Hz
 
     manipulator_controller:
       type: joint_trajectory_controller/JointTrajectoryController
