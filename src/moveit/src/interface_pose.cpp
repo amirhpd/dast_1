@@ -6,10 +6,9 @@
 // ros2 launch moveit moveit.launch.py 
 // ros2 run moveit interface_pose 2.094 -1.345 0.038 -3.053 0.000 1.000
 // valid pose examples:
-// 0.0 0.0 7.23 0.0 0.0 0.0
-// 2.094 -1.345 0.038 -3.053 0.000 1.000
-// 3.112 2.400 4.501 -0.987 0.708 -0.508
-// -4.433 0.635 1.326 -0.000 -1.130 -0.142
+// 0.163 -1.44 5.496 0.416 -0.831 1.144
+// To find a valid example, move the robot by angle and check the TF:
+// ros2 run tf2_ros tf2_echo world tip
 
 
 #include <rclcpp/rclcpp.hpp>
