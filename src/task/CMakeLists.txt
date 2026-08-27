@@ -20,12 +20,12 @@ target_include_directories(task_server_angle PRIVATE
   $<INSTALL_INTERFACE:include>)
 target_compile_definitions(task_server_angle
   PRIVATE "TASK_SERVER_ANGLE_CPP_BUILDING_DLL")
-ament_target_dependencies(task_server_angle
-  "msgs"
-  "rclcpp"
-  "rclcpp_action"
-  "rclcpp_components"
-  "moveit_ros_planning_interface")
+target_link_libraries(task_server_angle PUBLIC
+  ${msgs_TARGETS}
+  ${rclcpp_TARGETS}
+  ${rclcpp_action_TARGETS}
+  ${rclcpp_components_TARGETS}
+  ${moveit_ros_planning_interface_TARGETS})
 rclcpp_components_register_node(task_server_angle 
   PLUGIN "task::TaskServerAngle" 
   EXECUTABLE task_server_angle_node

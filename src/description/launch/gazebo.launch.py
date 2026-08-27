@@ -24,7 +24,7 @@ def generate_launch_description():
     robot_description_param = ParameterValue(
         Command([
             "xacro ", LaunchConfiguration("robot_description"),
-            " is_ignition:=", "True",  # for Humble: "True"
+            " is_sim:=", "True",
             ]),
         value_type=str
     )

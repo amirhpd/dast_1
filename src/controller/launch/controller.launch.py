@@ -25,6 +25,8 @@ def generate_launch_description():
     )
     is_sim_param = LaunchConfiguration("is_sim")
 
+    controller_config = f"{get_package_share_directory('controller')}/config/controller.yaml"
+
     robot_description_param = ParameterValue(
         Command([
             "xacro ", 
@@ -48,7 +50,7 @@ def generate_launch_description():
         parameters=[
             {"robot_description": robot_description_param,
              "use_sim_time": is_sim_param},
-             f"{get_package_share_directory('controller')}/config/controller.yaml"
+             controller_config
         ],
         condition=UnlessCondition(is_sim_param),
     )
@@ -56,13 +58,15 @@ def generate_launch_description():
     controller_manager__spawner__joint_state_broadcaster__node = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager",
+                   "--param-file", controller_config],
     )
 
     controller_manager__spawner__manipulator_controller__node = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["manipulator_controller", "--controller-manager", "/controller_manager"],
+        arguments=["manipulator_controller", "--controller-manager", "/controller_manager",
+                   "--param-file", controller_config],
     )
 
     # controller_manager__spawner__gripper_controller__node = Node(

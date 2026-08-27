@@ -57,6 +57,13 @@ def generate_launch_description():
             moveit_config.robot_description,
             moveit_config.robot_description_semantic,
         ],
+        # Qt6 enables HiDPI scaling by default, which makes the Ogre render window
+        # flicker black on some compositors -- see ros2/rviz#1052 and #1079.
+        additional_env={
+            "QT_ENABLE_HIGHDPI_SCALING": "0",
+            "QT_SCALE_FACTOR": "1",
+            "QT_AUTO_SCREEN_SCALE_FACTOR": "0",
+        },
     )
 
     return LaunchDescription([

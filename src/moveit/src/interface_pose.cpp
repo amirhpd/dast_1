@@ -12,9 +12,9 @@
 
 
 #include <rclcpp/rclcpp.hpp>
-#include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/move_group_interface/move_group_interface.hpp>
 #include <geometry_msgs/msg/pose.hpp>
-#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 void move_robot_to_pose(
@@ -48,14 +48,14 @@ void move_robot_to_pose(
     if (plan_result == moveit::core::MoveItErrorCode::SUCCESS)
     {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "MANIPULATOR PLAN SUCCEEDED!");
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), moveit::core::error_code_to_string(plan_result).c_str());
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), moveit::core::errorCodeToString(plan_result).c_str());
         manipulator_move_group.move();
         // manipulator_move_group.execute(manipulator_plan);  // both move() and execute() work
     }
     else
     {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "MANIPULATOR PLAN FAILED!");
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), moveit::core::error_code_to_string(plan_result).c_str());
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), moveit::core::errorCodeToString(plan_result).c_str());
         return;
     }
 }
