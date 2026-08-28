@@ -8,7 +8,7 @@
 
 
 #include <rclcpp/rclcpp.hpp>
-#include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/move_group_interface/move_group_interface.hpp>
 
 
 void move_robot_by_angle(
@@ -33,13 +33,13 @@ void move_robot_by_angle(
     if(plan_result == moveit::core::MoveItErrorCode::SUCCESS)
     {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "MANIPULATOR PLAN SUCCEEDED!");
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), moveit::core::error_code_to_string(plan_result).c_str());
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), moveit::core::errorCodeToString(plan_result).c_str());
         manipulator_move_group.move();
     }
     else
     {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "MANIPULATOR PLAN FAILED!");
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), moveit::core::error_code_to_string(plan_result).c_str());
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), moveit::core::errorCodeToString(plan_result).c_str());
         return;
     }
 }

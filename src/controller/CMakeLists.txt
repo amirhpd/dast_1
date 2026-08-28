@@ -20,13 +20,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   include
   "${SERIAL_INCLUDE_DIRS}"
 )
-target_link_libraries(${PROJECT_NAME}
- "${SERIAL_LDFLAGS}")
-ament_target_dependencies(${PROJECT_NAME}
-  hardware_interface
-  pluginlib
-  rclcpp
-  rclcpp_lifecycle
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  "${SERIAL_LDFLAGS}"
+  ${hardware_interface_TARGETS}
+  ${pluginlib_TARGETS}
+  ${rclcpp_TARGETS}
+  ${rclcpp_lifecycle_TARGETS}
 )
 
 pluginlib_export_plugin_description_file(hardware_interface hw_controller.xml)

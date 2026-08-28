@@ -15,13 +15,23 @@ find_package(pcl_conversions REQUIRED)
 ament_python_install_package(${PROJECT_NAME})
 
 add_executable(interface_angle src/interface_angle.cpp)
-ament_target_dependencies(interface_angle rclcpp moveit_ros_planning_interface)
+target_link_libraries(interface_angle PUBLIC
+  ${rclcpp_TARGETS}
+  ${moveit_ros_planning_interface_TARGETS}
+)
 
 add_executable(interface_pose src/interface_pose.cpp)
-ament_target_dependencies(interface_pose rclcpp moveit_ros_planning_interface)
+target_link_libraries(interface_pose PUBLIC
+  ${rclcpp_TARGETS}
+  ${moveit_ros_planning_interface_TARGETS}
+)
 
 add_executable(find_reachable_workspace src/find_reachable_workspace.cpp)
-ament_target_dependencies(find_reachable_workspace rclcpp moveit_ros_planning_interface pcl_ros)
+target_link_libraries(find_reachable_workspace PUBLIC
+  ${rclcpp_TARGETS}
+  ${moveit_ros_planning_interface_TARGETS}
+  ${pcl_ros_TARGETS}
+)
 
 install(TARGETS
 interface_angle interface_pose find_reachable_workspace

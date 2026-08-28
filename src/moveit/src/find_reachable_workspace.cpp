@@ -5,7 +5,7 @@
 // ros2 run moveit publish_pointcloud.py 
 
 #include <rclcpp/rclcpp.hpp>
-#include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/move_group_interface/move_group_interface.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 #include <pcl/io/pcd_io.h>
 
@@ -48,7 +48,7 @@ geometry_msgs::msg::Pose get_pose_from_trajectory(
                                                 const std::string &end_effector_link
                                                 )
 {
-    const auto &trajectory_points = plan.trajectory_.joint_trajectory.points;
+    const auto &trajectory_points = plan.trajectory.joint_trajectory.points;
     if (trajectory_points.empty())
     {
         RCLCPP_ERROR(rclcpp::get_logger(node_name), "Trajectory is empty!");
@@ -113,7 +113,7 @@ void brute_force_workspace(const std::shared_ptr<rclcpp::Node> &node)
                             RCLCPP_ERROR(rclcpp::get_logger(node_name), "Point no. %d stored.", counter);
                             counter++;
                             continue;
-                            // RCLCPP_ERROR(rclcpp::get_logger(node_name), moveit::core::error_code_to_string(plan_result).c_str());
+                            // RCLCPP_ERROR(rclcpp::get_logger(node_name), moveit::core::errorCodeToString(plan_result).c_str());
                         }
                     }
                 }

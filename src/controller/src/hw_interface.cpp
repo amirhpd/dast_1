@@ -26,9 +26,9 @@ HwInterface::~HwInterface()
   }
 }
 
-CallbackReturn HwInterface::on_init(const hardware_interface::HardwareInfo &hardware_info)
+CallbackReturn HwInterface::on_init(const hardware_interface::HardwareComponentInterfaceParams &params)
 {
-  CallbackReturn result = hardware_interface::SystemInterface::on_init(hardware_info);
+  CallbackReturn result = hardware_interface::SystemInterface::on_init(params);
   if (result != CallbackReturn::SUCCESS)
   {
     return result;
@@ -44,46 +44,39 @@ CallbackReturn HwInterface::on_init(const hardware_interface::HardwareInfo &hard
     return CallbackReturn::FAILURE;
   }
 
-  position_commands_.reserve(info_.joints.size());
-  position_states_.reserve(info_.joints.size());
-  prev_position_commands_.reserve(info_.joints.size());
+  // The framework exports the interfaces declared in <ros2_control>; we only keep their names
+  // so read()/write() can address them with set_state()/get_command().
+  for (const auto &joint : info_.joints)
+  {
+    position_interfaces_.push_back(joint.name + "/" + hardware_interface::HW_IF_POSITION);
+  }
+
+  position_commands_.assign(info_.joints.size(), 0.0);
+  prev_position_commands_.assign(info_.joints.size(), 0.0);
 
   return CallbackReturn::SUCCESS;
-}
-
-std::vector<hardware_interface::StateInterface> HwInterface::export_state_interfaces()
-{
-  std::vector<hardware_interface::StateInterface> state_interfaces;
-
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.joints[i].name, hardware_interface::HW_IF_POSITION, &position_states_[i]));
-  }
-
-  return state_interfaces;
-}
-
-std::vector<hardware_interface::CommandInterface> HwInterface::export_command_interfaces()
-{
-  std::vector<hardware_interface::CommandInterface> command_interfaces;
-
-  for (size_t i = 0; i < info_.joints.size(); i++)
-  {
-    command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.joints[i].name, hardware_interface::HW_IF_POSITION, &position_commands_[i]));
-  }
-
-  return command_interfaces;
 }
 
 CallbackReturn HwInterface::on_activate(const rclcpp_lifecycle::State &previous_state)
 {
   RCLCPP_INFO(rclcpp::get_logger("HwInterface"), "Activating hardware interface..");
 
-  position_commands_ = { 0.0, 0.0, 1.571, 1.484, 0.0 };
-  prev_position_commands_ = { 0.0, 0.0, 1.571, 1.484, 0.0 };
-  position_states_ = { 0.0, 0.0, 1.571, 1.484, 0.0 };
+  const std::vector<double> home_position = { 0.0, 0.0, 1.571, 1.484, 0.0 };
+  if (home_position.size() != position_interfaces_.size())
+  {
+    RCLCPP_FATAL(rclcpp::get_logger("HwInterface"),
+                 "Hardware has %zu joints but %zu home positions are defined.",
+                 position_interfaces_.size(), home_position.size());
+    return CallbackReturn::FAILURE;
+  }
+
+  position_commands_ = home_position;
+  prev_position_commands_ = home_position;
+  for (size_t i = 0; i < position_interfaces_.size(); i++)
+  {
+    set_state(position_interfaces_[i], home_position[i]);
+    set_command(position_interfaces_[i], home_position[i]);
+  }
 
   try
   {
@@ -140,43 +133,47 @@ hardware_interface::return_type HwInterface::read(const rclcpp::Time &time, cons
     }
     // waiting for feedback
   }
-  
+
   if (!feedback.empty() && feedback[0] == 'F')
   {
     std::vector<std::string> feedbacks = _split_string(feedback, ',');
     feedbacks[0].erase(0, 1);
-    for (size_t i = 0; i < feedbacks.size(); i++)
+    for (size_t i = 0; i < feedbacks.size() && i < position_interfaces_.size(); i++)
     {
-      position_states_[i] = (std::stod(feedbacks[i]) * M_PI / 180);
+      set_state(position_interfaces_[i], std::stod(feedbacks[i]) * M_PI / 180);
     }
     RCLCPP_INFO_STREAM(rclcpp::get_logger("HwInterface"), "Feedback: " << feedback);
   }
-  
+
   // open-loop feedback
-  // position_states_ = position_commands_;
+  // for (size_t i = 0; i < position_interfaces_.size(); i++)
+  //   set_state(position_interfaces_[i], position_commands_[i]);
 
   return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type HwInterface::write(const rclcpp::Time &time, const rclcpp::Duration &period)
 {
+  for (size_t i = 0; i < position_interfaces_.size(); i++)
+  {
+    position_commands_[i] = get_command<double>(position_interfaces_[i]);
+  }
+
   if (position_commands_ == prev_position_commands_)
   {
     return hardware_interface::return_type::OK;
   }
 
-  int joint_1 = static_cast<int>(position_commands_.at(0) * (180/M_PI));
-  int joint_2 = static_cast<int>(position_commands_.at(1) * (180/M_PI));
-  int joint_3 = static_cast<int>(position_commands_.at(2) * (180/M_PI));
-  int joint_4 = static_cast<int>(position_commands_.at(3) * (180/M_PI));
-  int joint_5 = static_cast<int>(position_commands_.at(4) * (180/M_PI));
-
-  std::string msg = 
-    std::to_string(joint_1) + "," +
-    std::to_string(joint_2) + "," +
-    std::to_string(joint_3) + "," +
-    std::to_string(joint_4) + "," +
-    std::to_string(joint_5);  
+  // wire format: comma-separated integer degrees, one per joint, no terminator
+  std::string msg;
+  for (size_t i = 0; i < position_commands_.size(); i++)
+  {
+    if (i > 0)
+    {
+      msg += ",";
+    }
+    msg += std::to_string(static_cast<int>(position_commands_[i] * (180 / M_PI)));
+  }
 
   try
   {
