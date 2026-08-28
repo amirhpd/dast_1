@@ -15,6 +15,7 @@ from moveit_configs_utils import MoveItConfigsBuilder
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -25,6 +26,13 @@ def generate_launch_description():
         default_value="True"
     )
     is_sim_param = LaunchConfiguration("is_sim")
+
+    rviz_arg = DeclareLaunchArgument(
+        "rviz",
+        default_value="True",
+        description="Start RViz. Set to False for a headless run.",
+    )
+    rviz_param = LaunchConfiguration("rviz")
 
     # moveit node
     moveit_config = (
@@ -45,6 +53,7 @@ def generate_launch_description():
 
     # rviz node
     rviz_node = Node(
+        condition=IfCondition(rviz_param),
         package="rviz2",
         name="rviz2",
         executable="rviz2",
@@ -68,6 +77,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         is_sim_arg,
+        rviz_arg,
         move_group_node,
         rviz_node
     ])

@@ -11,6 +11,9 @@ find_package(moveit_ros_planning_interface REQUIRED)
 find_package(PCL REQUIRED)
 find_package(pcl_ros REQUIRED)
 find_package(pcl_conversions REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(moveit_msgs REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 ament_python_install_package(${PROJECT_NAME})
 
@@ -26,6 +29,15 @@ target_link_libraries(interface_pose PUBLIC
   ${moveit_ros_planning_interface_TARGETS}
 )
 
+add_executable(interface_sequence src/interface_sequence.cpp)
+target_link_libraries(interface_sequence PUBLIC
+  ${rclcpp_TARGETS}
+  ${rclcpp_action_TARGETS}
+  ${moveit_ros_planning_interface_TARGETS}
+  ${moveit_msgs_TARGETS}
+  yaml-cpp
+)
+
 add_executable(find_reachable_workspace src/find_reachable_workspace.cpp)
 target_link_libraries(find_reachable_workspace PUBLIC
   ${rclcpp_TARGETS}
@@ -34,7 +46,7 @@ target_link_libraries(find_reachable_workspace PUBLIC
 )
 
 install(TARGETS
-interface_angle interface_pose find_reachable_workspace
+interface_angle interface_pose interface_sequence find_reachable_workspace
   DESTINATION lib/${PROJECT_NAME}
 )
 

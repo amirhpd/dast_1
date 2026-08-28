@@ -10,6 +10,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch import LaunchDescription
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import Command, LaunchConfiguration
+from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 
 
@@ -21,6 +22,13 @@ def generate_launch_description():
         default_value=f"{description_dir}/urdf/description.urdf.xacro",
         description="Path to the URDF file.",
     )
+    gui_arg = DeclareLaunchArgument(
+        name="gui",
+        default_value="True",
+        description="Start the Gazebo GUI. Set to False for a headless, server-only run.",
+    )
+    gui_param = LaunchConfiguration("gui")
+
     robot_description_param = ParameterValue(
         Command([
             "xacro ", LaunchConfiguration("robot_description"),
@@ -44,9 +52,21 @@ def generate_launch_description():
                      "use_sim_time": True}]
     )
 
+    # Gazebo, with or without its GUI. Headless (-s) starts the physics server only:
+    # much faster, and enough for anything that reads topics/actions rather than looking.
+    gz_source = PythonLaunchDescriptionSource(
+        [f"{get_package_share_directory('ros_gz_sim')}/launch", "/gz_sim.launch.py"])
+
     gazebo_launch = IncludeLaunchDescription(  # load launch file in launch file
-                PythonLaunchDescriptionSource([f"{get_package_share_directory('ros_gz_sim')}/launch", "/gz_sim.launch.py"]),
-                launch_arguments=[("gz_args", [" -v 4 -r empty.sdf ", ""])]  # for Humble: ""
+                gz_source,
+                launch_arguments=[("gz_args", [" -v 4 -r empty.sdf "])],
+                condition=IfCondition(gui_param),
+             )
+
+    gazebo_launch_headless = IncludeLaunchDescription(
+                gz_source,
+                launch_arguments=[("gz_args", [" -s -v 4 -r empty.sdf "])],
+                condition=UnlessCondition(gui_param),
              )
     
     ros_gz_sim_node = Node(  # starts Gazebo sim and spawns the model
@@ -68,9 +88,11 @@ def generate_launch_description():
 
     return LaunchDescription([
         robot_description_arg,
+        gui_arg,
         gazebo_resource_path_env_var,
         robot_state_publisher_node,
         gazebo_launch,
+        gazebo_launch_headless,
         ros_gz_sim_node,
         gz_ros2_bridge,
         controller_launch
