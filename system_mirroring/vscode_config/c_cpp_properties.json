@@ -1,0 +1,25 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "ROS 2 Lyrical",
+            "compileCommands": [
+                "${workspaceFolder}/build/controller/compile_commands.json",
+                "${workspaceFolder}/build/moveit/compile_commands.json",
+                "${workspaceFolder}/build/msgs/compile_commands.json",
+                "${workspaceFolder}/build/task/compile_commands.json"
+            ],
+            "includePath": [
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/install/*/include/**",
+                "/opt/ros/lyrical/include/**",
+                "/usr/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ]
+}

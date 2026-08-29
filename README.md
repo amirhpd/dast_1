@@ -14,19 +14,85 @@ and a ROS 2 stack with MoveIt 2 motion planning and a Gazebo simulation.
 ## Requirements
 
 * Ubuntu 26.04 LTS with ROS 2 Lyrical Luth (Gazebo Jetty)
-* See [`system_mirroring/system_mirroring.md`](system_mirroring/system_mirroring.md) to install every
-  ROS and Python package the project needs
 
-## Build
+## Set up on a new machine
+
+Everything needed to stand up a fresh machine lives in
+[`system_mirroring/`](system_mirroring). Pick whichever route suits you.
+
+### By hand
+
+Four scripts, in order, then build:
 
 ```bash
 git clone https://github.com/amirhpd/dast_1.git
+cd dast_1/system_mirroring
+
+./install_ros2_lyrical.sh                              # ROS 2 apt source + base system
+./install_ros2_packages.sh                             # ROS/system packages + rosdep
+pip install --user -r installed_python_packages.txt    # non-apt Python packages
+./install_vscode_extensions.sh                         # VS Code (optional)
+
+cd ..
+source /opt/ros/lyrical/setup.bash
+colcon build --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+source install/setup.bash
+
+./system_mirroring/verify_setup.sh                     # prints PASS/FAIL per item
+```
+
+A correct machine ends with `ALL CHECKS PASSED`.
+[`system_mirroring.md`](system_mirroring/system_mirroring.md) explains each step
+and the traps worth knowing about.
+
+### With an AI agent
+
+If you use Claude Code or a similar agent, clone the repo, open it, and paste
+this prompt:
+
+> Set this machine up to build and run the DAST-1 project.
+>
+> Follow `system_mirroring/system_mirroring.md` from the top. It targets Ubuntu
+> 26.04 with ROS 2 Lyrical Luth — confirm the machine matches before you start,
+> and stop and tell me if it does not.
+>
+> Run the four install scripts in order, then build the workspace with
+> `colcon build --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON`, then run
+> `system_mirroring/verify_setup.sh` and keep working until it reports
+> `ALL CHECKS PASSED`.
+>
+> Notes:
+> - `source /opt/ros/lyrical/setup.bash` and `source install/setup.bash` do not
+>   survive between shell invocations — re-source them in every command.
+> - The install scripts need `sudo` and will prompt. Tell me when you need me to
+>   type a password rather than trying to work around it.
+> - Finish with a headless smoke test:
+>   `ros2 launch startup sim_robot.launch.py gui:=False rviz:=False`, then check
+>   `ros2 control list_controllers` shows both controllers `active` and that
+>   `ros2 action send_goal /task_server_angle msgs/action/TaskAction "task_number: 0"`
+>   returns `success: true`. Do not open Gazebo or RViz windows.
+> - Tear the sim down with a bracket pattern (`pkill -f "[g]z sim"`) — a plain
+>   `pkill -f "gz sim"` also matches the shell running it.
+> - Report anything you had to change from the documented steps, so I can fold it
+>   back into `system_mirroring/`.
+
+Hardware is not covered by any of the above. For the real robot, also add
+yourself to the `dialout` group (`sudo usermod -aG dialout $USER`, then log out
+and back in) and plug the Nano 33 into `/dev/ttyACM0`.
+
+## Build
+
+Once the machine is set up, a normal rebuild is:
+
+```bash
 cd dast_1
 colcon build
 source install/setup.bash
 ```
 
-Run `source install/setup.bash` once in every new terminal.
+Run `source install/setup.bash` once in every new terminal. Add
+`--cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON` whenever you want editor
+IntelliSense to pick up newly added includes.
 
 ## Run
 
