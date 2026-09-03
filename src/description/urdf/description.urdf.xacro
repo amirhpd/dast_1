@@ -100,6 +100,14 @@
         </collision>
     </link>
 
+    <!-- TEMPORARY, SIMULATION ONLY. Placeholder for the sixth DOF: carries no mesh
+         of its own, so at joint_6 = 0 the robot looks exactly as it did when the
+         arm had 5 joints. The real joint, with its own geometry and a servo behind
+         it, will replace this. See "The sixth joint" in CLAUDE.md. -->
+    <link name="wrist_link">
+        <xacro:default_inertial mass="0.01"/>
+    </link>
+
     <link name="gripper_link">
         <xacro:default_inertial mass="0.05"/>
         <visual>
@@ -163,10 +171,19 @@
 
     <joint name ="joint_5" type="revolute">
         <parent link="arm_3_link"/>
-        <child link = "gripper_link"/>
+        <child link = "wrist_link"/>
         <origin xyz="0 0 0.88"/>
         <axis xyz="0 0 1"/>
         <limit lower="-${PI / 2}" upper="${PI / 2}" 
+               effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="joint_6" type="revolute">
+        <parent link="wrist_link"/>
+        <child link = "gripper_link"/>
+        <origin xyz="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit lower="-${PI / 2}" upper="${PI / 2}"
                effort="${effort}" velocity="${velocity}"/>
     </joint>
 

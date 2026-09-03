@@ -70,15 +70,15 @@ private:
   
     if (goal_handle->get_goal()->task_number == 0)
     {
-      manipulator_joint_goal_ = {0.0, 0.785, 0.716, 1.57, 0.0};
+      manipulator_joint_goal_ = {0.0, 0.785, 0.716, 1.57, 0.0, 0.0};
     }
     else if (goal_handle->get_goal()->task_number == 1)
     {
-      manipulator_joint_goal_ = {0.872, 0.244, 0.488, 1.169, 0.0};
+      manipulator_joint_goal_ = {0.872, 0.244, 0.488, 1.169, 0.0, 0.0};
     }
     else if (goal_handle->get_goal()->task_number == 2)
     {
-      manipulator_joint_goal_ = {0.872, 1.151, 0.087, 1.57, 0.0};
+      manipulator_joint_goal_ = {0.872, 1.151, 0.087, 1.57, 0.0, 0.0};
     }
     else
     {

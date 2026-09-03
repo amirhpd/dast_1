@@ -3,39 +3,39 @@
 #
 # See sequence_example.yaml for the field descriptions.
 #
-# WARNING -- pose waypoints need far more decimals than they look like they do.
-# DAST-1 has 5 joints, so the poses it can hold form a 5-dimensional surface in
-# the 6-dimensional space of x/y/z/roll/pitch/yaw. A pose that is off that
-# surface by even a millimetre has no IK solution at all, and the sequence dies
-# with "error code: 99999". Rounding a real pose to 3 decimals is already enough
-# to push it off. So do NOT copy the default output of
+# NOTE on precision -- this used to be a hard trap and is now only a nuisance.
+# While DAST-1 had 5 joints, the poses it could hold formed a 5-dimensional
+# surface in the 6-dimensional space of x/y/z/roll/pitch/yaw, so a pose off
+# that surface by a millimetre had no IK solution at all and the sequence died
+# with "error code: 99999". Rounding a real pose to 3 decimals was enough to
+# cause it. With joint_6 the arm is 6-DOF and reachable poses form a volume,
+# so a slightly rounded pose usually still has a solution nearby.
 #
-#   ros2 run tf2_ros tf2_echo world tip      # prints 3 decimals
+# Recording poses at full precision is still the right habit:
 #
-# into this file -- ask for more with the -p flag:
+#   ros2 run tf2_ros tf2_echo world tip -p 6   # 6 decimals; the default is 3
 #
-#   ros2 run tf2_ros tf2_echo world tip -p 6
-#
-# The poses below came from that, and each one is annotated with the joint
-# angles it was recorded at. When in doubt use 'joints' waypoints instead:
-# they need no IK and cannot suffer from this.
+# The poses below came from that. They were recorded before joint_6 existed,
+# and are still exact: joint_6 sits at the old joint_5 origin with a zero
+# offset, so at joint_6 = 0 the tip lands in exactly the same place as before.
+# When in doubt use 'joints' waypoints, which need no IK at all.
 
 group: manipulator
 velocity_scaling: 0.1
 acceleration_scaling: 0.1
 
 segments:
-  # from joints 0.300, 0.200, 0.100, 0.400, 0.000
+  # from joints 0.300, 0.200, 0.100, 0.400, 0.000, 0.000
   - type: PTP
     pose: [0.761267, -2.460969, 6.853867, 0.700000, -0.000000, 0.300000]
     blend_radius: 0.0
 
-  # from joints -0.400, 0.600, 0.100, 1.000, 0.200
+  # from joints -0.400, 0.600, 0.100, 1.000, 0.200, 0.000
   - type: PTP
     pose: [-1.843294, -4.359800, 3.893901, 1.702598, -0.198311, -0.426112]
     blend_radius: 0.0
 
-  # from joints 0.500, 0.400, -0.600, 0.900, -0.700
+  # from joints 0.500, 0.400, -0.600, 0.900, -0.700, 0.000
   - type: PTP
     pose: [0.915478, -1.675772, 6.810804, 0.572300, 0.427961, -0.072300]
     blend_radius: 0.0
