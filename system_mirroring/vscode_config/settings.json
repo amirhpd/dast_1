@@ -1,0 +1,29 @@
+{
+    // colcon owns build/ -- don't let CMake Tools configure into it.
+    "cmake.configureOnOpen": false,
+    "cmake.automaticReconfigure": false,
+
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+
+    "files.associations": {
+        "*.xacro": "xml",
+        "*.urdf": "xml",
+        "*.sdf": "xml"
+    },
+    "yaml.schemas": {},
+    "python.analysis.extraPaths": [
+        "/opt/ros/lyrical/lib/python3.14/site-packages"
+    ],
+    "python.autoComplete.extraPaths": [
+        "/home/amir/projects/dast_1/install/task/lib/python3.14/site-packages",
+        "/home/amir/projects/dast_1/install/msgs/lib/python3.14/site-packages",
+        "/home/amir/projects/dast_1/install/moveit/lib/python3.14/site-packages",
+        "/home/amir/projects/dast_1/install/micro/lib/python3.14/site-packages",
+        "/opt/ros/lyrical/opt/gz_sim_vendor/lib/python",
+        "/opt/ros/lyrical/opt/gz_transport_vendor/lib/python",
+        "/opt/ros/lyrical/opt/sdformat_vendor/lib/python",
+        "/opt/ros/lyrical/opt/gz_msgs_vendor/lib/python",
+        "/opt/ros/lyrical/opt/gz_math_vendor/lib/python",
+        "/opt/ros/lyrical/lib/python3.14/site-packages"
+    ]
+}
