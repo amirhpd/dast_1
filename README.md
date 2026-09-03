@@ -1,7 +1,9 @@
 # DAST-1
 
-A 5-DOF serial manipulator: 3D-printed mechanics, hobby servos, an Arduino Nano 33 BLE Sense Rev2,
+A serial manipulator: 3D-printed mechanics, hobby servos, an Arduino Nano 33 BLE Sense Rev2,
 and a ROS 2 stack with MoveIt 2 motion planning and a Gazebo simulation.
+The hardware has 5 joints; the simulated robot has a sixth, `joint_6`, a wrist rotation with no
+servo behind it.
 
 ## Hardware
 
@@ -187,7 +189,9 @@ be larger than the one before it.
 
 ### Reachable workspace
 
-All five joints are limited to ±90°, and not every pose in that range can be reached.
+All joints are limited to ±90°, and not every pose in that range can be reached.
+The scan sweeps `joint_1`..`joint_5` with `joint_6` held at 0, so it understates the
+reachable workspace of the 6-DOF description.
 `points.pcd` holds the measured reachable workspace:
 
 ```bash

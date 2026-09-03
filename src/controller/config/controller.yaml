@@ -22,6 +22,7 @@ manipulator_controller:
       - joint_3
       - joint_4
       - joint_5
+      - joint_6
       
     command_interfaces:
       - position
@@ -35,7 +36,7 @@ manipulator_controller:
 # gripper_controller:
 #   ros__parameters:
 #     joints:
-#       - joint_6
+#       - joint_7
       
 #     # interface_name: position
       

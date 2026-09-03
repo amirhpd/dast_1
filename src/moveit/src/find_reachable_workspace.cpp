@@ -87,7 +87,9 @@ void brute_force_workspace(const std::shared_ptr<rclcpp::Node> &node)
             for(float joint_3 = -pi/2; joint_3 < pi/2; joint_3 += resolution){
                 for(float joint_4 = -pi/2; joint_4 < pi/2; joint_4 += resolution){
                     for(float joint_5 = -pi/2; joint_5 < pi/2; joint_5 += resolution){
-                        std::vector<double> joint_set {joint_1, joint_2, joint_3, joint_4, joint_5};
+                        // joint_6 is held at 0: a sixth nested loop would multiply the
+                        // run time by another 5 for very little extra reach.
+                        std::vector<double> joint_set {joint_1, joint_2, joint_3, joint_4, joint_5, 0.0};
                         bool manipulator_at_goal = manipulator_move_group.setJointValueTarget(joint_set);
                         if (!manipulator_at_goal)
                         {

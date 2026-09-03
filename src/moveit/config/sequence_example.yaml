@@ -6,15 +6,17 @@
 #   type          PTP  (joint-space point-to-point)
 #                 LIN  (straight line in Cartesian space)
 #                 CIRC (arc; needs an interim/centre constraint, not shown here)
-#   joints        5 joint angles in RADIANS, all limited to +/-pi/2
+#   joints        6 joint angles in RADIANS, all limited to +/-pi/2
 #   pose          x y z roll pitch yaw (metres and radians) -- use instead of 'joints'
 #   blend_radius  how far before the waypoint to start rounding the corner.
 #                 0 = stop exactly on the point. The LAST segment must be 0.
 #
-# NOTE: keep blend_radius at 0 on this robot. Pilz blends by sampling Cartesian
-# poses through the corner and solving IK for each one, and DAST-1 has only
-# 5 DOF, so most of those 6-DOF poses have no IK solution. A non-zero radius
-# fails the whole sequence with the opaque "error code: 99999 / Blending failed".
+# NOTE: blend_radius > 0 used to fail on this robot with the opaque
+# "error code: 99999 / Blending failed". Blending samples Cartesian poses
+# through the corner and solves IK for each one, and the old 5-DOF arm could
+# not reach most of them. Adding joint_6 made the arm 6-DOF and blending now
+# works -- these same three waypoints run at blend_radius 0.3. The examples
+# below stay at 0 so they stop exactly on each point.
 
 group: manipulator
 velocity_scaling: 0.1
@@ -22,13 +24,13 @@ acceleration_scaling: 0.1
 
 segments:
   - type: PTP
-    joints: [0.4, 0.2, 0.3, 0.5, 0.0]
+    joints: [0.4, 0.2, 0.3, 0.5, 0.0, 0.0]
     blend_radius: 0.0
 
   - type: PTP
-    joints: [-0.4, 0.6, 0.1, 1.0, 0.2]
+    joints: [-0.4, 0.6, 0.1, 1.0, 0.2, -0.5]
     blend_radius: 0.0
 
   - type: PTP
-    joints: [0.0, 0.0, 0.0, 0.0, 0.0]
+    joints: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     blend_radius: 0.0

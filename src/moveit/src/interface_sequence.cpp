@@ -56,11 +56,22 @@ std::string describe_segment(const YAML::Node &segment, size_t index)
 }
 
 
+std::string check_joints(MoveGroupInterface &move_group, const YAML::Node &segment);
+
+
 // Puts the segment's target -- joint values or a pose -- onto the move group.
 void apply_target(MoveGroupInterface &move_group, const YAML::Node &segment)
 {
     if (segment["joints"])
     {
+        // setJointValueTarget() reports a wrong-sized or out-of-range list by
+        // returning false and changing nothing, which would leave this segment
+        // silently pointing at the previous target. Fail loudly instead.
+        const std::string problem = check_joints(move_group, segment);
+        if (!problem.empty())
+        {
+            throw std::runtime_error(problem);
+        }
         std::vector<double> joints = segment["joints"].as<std::vector<double>>();
         move_group.setJointValueTarget(joints);
     }
@@ -283,7 +294,8 @@ void diagnose_failure(
         RCLCPP_ERROR(logger,
                      "Every segment plans on its own, so the sequence failed while blending or "
                      "executing. If any blend_radius is non-zero, set it to 0: blending needs an "
-                     "IK solution for each sampled corner pose, which this 5-DOF arm rarely has.");
+                     "IK solution for each sampled corner pose, which is not guaranteed near the\n"
+                     "joint limits.");
         return;
     }
 
@@ -331,7 +343,7 @@ void diagnose_failure(
         case moveit_msgs::msg::MoveItErrorCodes::GOAL_CONSTRAINTS_VIOLATED:
             RCLCPP_ERROR(logger,
                          "The target is outside the joint limits (+/-pi/2 on every joint) or the "
-                         "'joints' list does not have 5 entries.");
+                         "'joints' list does not have 6 entries.");
             break;
     }
 }

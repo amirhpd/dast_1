@@ -4,7 +4,7 @@
 // commands to run:
 // ros2 launch description gazebo.launch.py 
 // ros2 launch moveit moveit.launch.py 
-// ros2 run moveit interface_angle 1.0 0.52 1.57 1.57 0.0
+// ros2 run moveit interface_angle 60 30 90 90 0 0        (6 angles, in DEGREES)
 
 
 #include <rclcpp/rclcpp.hpp>
@@ -13,12 +13,12 @@
 
 void move_robot_by_angle(
     const std::shared_ptr<rclcpp::Node> node, 
-    float joint_1, float joint_2, float joint_3, float joint_4, float joint_5
+    float joint_1, float joint_2, float joint_3, float joint_4, float joint_5, float joint_6
     )
 {
     auto manipulator_move_group = moveit::planning_interface::MoveGroupInterface(node, "manipulator");
 
-    std::vector<double> manipulator_goal {joint_1, joint_2, joint_3, joint_4, joint_5};
+    std::vector<double> manipulator_goal {joint_1, joint_2, joint_3, joint_4, joint_5, joint_6};
     bool manipulator_at_goal = manipulator_move_group.setJointValueTarget(manipulator_goal);
 
     if (!manipulator_at_goal)
@@ -48,9 +48,9 @@ int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
 
-    if (argc != 6)
+    if (argc != 7)
         {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Usage: <joint_1> <joint_2> <joint_3> <joint_4> <joint_5> [degrees]");
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Usage: <joint_1> <joint_2> <joint_3> <joint_4> <joint_5> <joint_6> [degrees]");
         return 1;
         }
     float joint_1 = std::stof(argv[1]) * (M_PI / 180);
@@ -58,9 +58,10 @@ int main(int argc, char **argv)
     float joint_3 = std::stof(argv[3]) * (M_PI / 180);
     float joint_4 = std::stof(argv[4]) * (M_PI / 180);
     float joint_5 = std::stof(argv[5]) * (M_PI / 180);
+    float joint_6 = std::stof(argv[6]) * (M_PI / 180);
 
     std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("interface_angle");
-    move_robot_by_angle(node, joint_1, joint_2, joint_3, joint_4, joint_5);
+    move_robot_by_angle(node, joint_1, joint_2, joint_3, joint_4, joint_5, joint_6);
 
     rclcpp::shutdown();
 }
