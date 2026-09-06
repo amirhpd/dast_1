@@ -6,6 +6,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+find_package(camera_calibration_parsers REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
@@ -22,6 +24,8 @@ target_include_directories(kinect_node PRIVATE
 target_link_libraries(kinect_node PUBLIC
   "${FREENECT_LDFLAGS}"
   "${FREENECT_SYNC_LIB}"
+  ${ament_index_cpp_TARGETS}
+  ${camera_calibration_parsers_TARGETS}
   ${rclcpp_TARGETS}
   ${sensor_msgs_TARGETS}
 )

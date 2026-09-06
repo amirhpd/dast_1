@@ -37,6 +37,14 @@ def generate_launch_description():
     )
     pointcloud_param = LaunchConfiguration("publish_pointcloud")
 
+    tilt_arg = DeclareLaunchArgument(
+        "tilt_degrees",
+        default_value="-16",
+        description="Tilt commanded at startup, -30..30, negative is head down. "
+                    "Must match the tilt the extrinsic calibration was measured at."
+    )
+    tilt_param = LaunchConfiguration("tilt_degrees")
+
     kinect_node = Node(
         package="kinect",
         executable="kinect_node",
@@ -44,6 +52,7 @@ def generate_launch_description():
         parameters=[{
             "publish_pointcloud": pointcloud_param,
             "frame_id": "kinect_rgb_optical_frame",
+            "tilt_degrees": tilt_param,
         }]
     )
 
@@ -77,6 +86,7 @@ def generate_launch_description():
     return LaunchDescription([
         rviz_arg,
         pointcloud_arg,
+        tilt_arg,
         kinect_node,
         optical_frame_tf,
         rviz_node,
