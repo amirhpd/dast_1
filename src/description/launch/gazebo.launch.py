@@ -54,18 +54,24 @@ def generate_launch_description():
 
     # Gazebo, with or without its GUI. Headless (-s) starts the physics server only:
     # much faster, and enough for anything that reads topics/actions rather than looking.
+    #
+    # worlds/dast_1.sdf is Gazebo's empty.sdf plus the Sensors system. Without that
+    # system the Kinect is created and advertises its topics but never renders a
+    # single frame, silently -- see the comment in that file.
     gz_source = PythonLaunchDescriptionSource(
         [f"{get_package_share_directory('ros_gz_sim')}/launch", "/gz_sim.launch.py"])
 
+    world_file = f"{description_dir}/worlds/dast_1.sdf"
+
     gazebo_launch = IncludeLaunchDescription(  # load launch file in launch file
                 gz_source,
-                launch_arguments=[("gz_args", [" -v 4 -r empty.sdf "])],
+                launch_arguments=[("gz_args", [f" -v 4 -r {world_file} "])],
                 condition=IfCondition(gui_param),
              )
 
     gazebo_launch_headless = IncludeLaunchDescription(
                 gz_source,
-                launch_arguments=[("gz_args", [" -s -v 4 -r empty.sdf "])],
+                launch_arguments=[("gz_args", [f" -s -v 4 -r {world_file} "])],
                 condition=UnlessCondition(gui_param),
              )
     
@@ -76,10 +82,24 @@ def generate_launch_description():
         arguments=["-topic", "robot_description", "-name", "dast_1"],
     )
 
-    gz_ros2_bridge = Node(  # network bridge of messages between ROS and Gazebo
+    # Network bridge of messages between ROS and Gazebo. The Kinect topics are
+    # renamed to exactly what the real driver publishes, so RViz, MoveIt and
+    # anything else downstream cannot tell the two modes apart.
+    gz_ros2_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"]
+        arguments=[
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+            "/kinect/image@sensor_msgs/msg/Image[gz.msgs.Image",
+            "/kinect/depth_image@sensor_msgs/msg/Image[gz.msgs.Image",
+            "/kinect/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
+            "/kinect/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+        ],
+        remappings=[
+            ("/kinect/image", "/kinect/rgb/image_raw"),
+            ("/kinect/depth_image", "/kinect/depth/image_raw"),
+            ("/kinect/camera_info", "/kinect/rgb/camera_info"),
+        ],
     )
 
     controller_launch = IncludeLaunchDescription(  # load the controller

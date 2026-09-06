@@ -79,6 +79,11 @@ public:
     open_attempts_ = static_cast<size_t>(declare_parameter("open_attempts", 30));
     camera_info_url_ = declare_parameter(
       "camera_info_url", "package://kinect/config/kinect_rgb.yaml");
+    // The point cloud is metric, but the DAST-1 model is not: its meshes are
+    // millimetres scaled by 0.01, so one unit in that URDF is a decimetre. Set
+    // this to 10.0 when publishing into that world; leave it at 1.0 for true
+    // metres. Only the cloud is scaled -- the depth image stays SI millimetres.
+    point_scale_ = declare_parameter("point_scale", 1.0);
     set_tilt_ = declare_parameter("set_tilt", true);
     tilt_degrees_ = static_cast<int>(declare_parameter("tilt_degrees", -16));
 
@@ -456,7 +461,7 @@ private:
         // Optical frame convention: z forward, x right, y down. The table
         // already holds the undistorted ray for this pixel, so the per-point
         // cost here is one multiply.
-        const float z = static_cast<float>(mm) * 0.001f;
+        const float z = static_cast<float>(mm) * 0.001f * static_cast<float>(point_scale_);
         *iter_z = z;
         *iter_x = unproject_x_[i] * z;
         *iter_y = unproject_y_[i] * z;
@@ -473,6 +478,7 @@ private:
   std::string camera_info_url_;
   int device_index_ {0};
   bool publish_pointcloud_ {true};
+  double point_scale_ {1.0};
   bool set_tilt_ {true};
   int tilt_degrees_ {-16};
   size_t open_attempts_ {30};

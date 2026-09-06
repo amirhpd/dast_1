@@ -1,0 +1,30 @@
+# Feeds the Kinect point cloud into MoveIt's occupancy map, so the planner treats
+# whatever the camera sees as an obstacle instead of empty space.
+#
+# The topic is the same in both modes: the real driver publishes it directly, and
+# in simulation ros_gz_bridge renames Gazebo's rgbd_camera output onto it.
+#
+# BEWARE OF UNITS: the DAST-1 model is in decimetres, not metres (meshes are
+# millimetres scaled by 0.01), so every length here is ten times its real value.
+# max_range 40.0 is the Kinect's real 4 m limit; the driver's point_scale
+# parameter converts the metric cloud into these units on the hardware path.
+
+sensors:
+  - kinect_pointcloud
+
+kinect_pointcloud:
+  sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
+  point_cloud_topic: /kinect/points
+  # Beyond this the Kinect's noise is larger than the voxels, so the points are
+  # not worth mapping. 40.0 = 4 m.
+  max_range: 40.0
+  # Every point: at 640x480 the cloud is dense enough that subsampling loses
+  # thin obstacles, and max_update_rate already caps the cost.
+  point_subsample: 1
+  # The robot filters itself out of its own view. Padding covers the gap between
+  # the collision meshes and the real links; 0.1 = 1 cm.
+  padding_offset: 0.1
+  padding_scale: 1.0
+  # The cloud arrives at 30 Hz, far more often than the map needs rebuilding.
+  max_update_rate: 1.0
+  filtered_cloud_topic: /kinect/filtered_points

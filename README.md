@@ -284,8 +284,9 @@ whole arm workspace stays beyond roughly 60 cm.
 | 1.5 m | 1.75 × 1.30 m |
 | 2.0 m | 2.33 × 1.74 m |
 
-The arm reaches about 0.5 m, so an eye-to-hand mount 1.2–1.5 m back covers the workspace with
-margin and stays clear of the 50 cm floor.
+The arm reaches about 0.71 m (`points.pcd` measures 7.14 model units, and the model is in
+decimetres — see *Units* below), so an eye-to-hand mount around 1 m back covers the workspace and
+stays clear of the 50 cm floor. The current mount is 1.03 m from `base_link`.
 
 Depth noise, measured as the per-pixel standard deviation over 30 s:
 
@@ -315,6 +316,49 @@ motor is otherwise invisible. Set `set_tilt:=False` to leave the motor untouched
 > `tilt_degrees` and every extrinsic is silently wrong, with nothing to show for it but a point
 > cloud that no longer lines up with the robot. Repeatability is about 1°, so bake the nominal
 > tilt into the URDF as well.
+
+### In the robot
+
+The camera is part of the robot description, so both modes publish the same topics and the
+planner sees the same obstacles:
+
+| | simulation | real robot |
+| --- | --- | --- |
+| source | Gazebo `rgbd_camera` + `ros_gz_bridge` | `kinect_node` |
+| started by | `sim_robot.launch.py` | `run_robot.launch.py` |
+| `/kinect/points` | ✔ | ✔ |
+| `/kinect/rgb/image_raw` | ✔ | ✔ |
+| `/kinect/depth/image_raw` | `32FC1`, model units | `16UC1`, millimetres |
+| `/kinect/depth/camera_info` | — | ✔ |
+| cloud `frame_id` | `kinect_link` (x forward) | `kinect_rgb_optical_frame` (z forward) |
+
+The last two rows are the only differences. Gazebo emits its cloud along the sensor link's **x**
+axis and `gz_frame_id` only labels the message rather than rotating it, so the simulated cloud is
+published in `kinect_link` and the real one in the optical frame. Both are correct in their own
+frame and TF reconciles them, so RViz and MoveIt behave identically — but code that hardcodes a
+frame name instead of asking TF will only work in one mode.
+
+The mount pose lives in `description.urdf.xacro` as `kinect_xyz` / `kinect_rpy`, and
+`sensors_3d.yaml` feeds `/kinect/points` to MoveIt's octomap at a 1 cm voxel.
+
+Gazebo needs `worlds/dast_1.sdf` rather than its stock `empty.sdf`: the stock world does not load
+`gz-sim-sensors-system`, and without it the camera is created and advertises every topic but
+never renders a frame, silently.
+
+### Units
+
+**The robot model is in decimetres, not metres.** The meshes are millimetres scaled by `0.01`, so
+one unit in the URDF is 10 cm: the 8 cm printed base is `0.8`, the 0.71 m reach is `7.14`, and
+`points.pcd` spans ±5.8. Every length in the URDF, `sensors_3d.yaml` and the Gazebo sensor
+follows that convention.
+
+The Kinect does not. Its driver publishes true metres, so `run_robot.launch.py` passes
+`point_scale: 10.0` to convert the cloud into model units. Simulation needs no such conversion —
+Gazebo already works in whatever units the URDF uses.
+
+This is worth fixing properly one day, by scaling the meshes at `0.001` and dividing every joint
+origin by ten. That would also invalidate every recorded pose, `points.pcd` and the waypoint
+YAMLs, so it is deliberately not done here.
 
 ### Checking the sensor
 
