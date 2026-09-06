@@ -1,0 +1,87 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /PointCloud21
+      Splitter Ratio: 0.5
+    Tree Height: 600
+Visualization Manager:
+  Class: ""
+  Name: root
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 0.5
+      Plane Cell Count: 10
+      Color: 160; 160; 164
+      Alpha: 0.5
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Marker Scale: 0.3
+      Show Names: true
+    - Class: rviz_default_plugins/PointCloud2
+      Name: PointCloud2
+      Enabled: true
+      Topic:
+        Value: /kinect/points
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+        History Policy: Keep Last
+      Color Transformer: RGB8
+      Size (Pixels): 3
+      Style: Points
+      Alpha: 1
+      Decay Time: 0
+      Position Transformer: XYZ
+    - Class: rviz_default_plugins/Image
+      Name: RGB
+      Enabled: true
+      Topic:
+        Value: /kinect/rgb/image_raw
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+        History Policy: Keep Last
+      Max Value: 1
+      Min Value: 0
+      Normalize Range: true
+    - Class: rviz_default_plugins/Image
+      Name: Depth
+      Enabled: true
+      Topic:
+        Value: /kinect/depth/image_raw
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+        History Policy: Keep Last
+      Max Value: 4000
+      Min Value: 0
+      Normalize Range: false
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: kinect_link
+    Frame Rate: 30
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Current View
+      Distance: 3
+      Focal Point:
+        X: 1
+        Y: 0
+        Z: 0
+      Pitch: 0.3
+      Yaw: 3.14
+      Target Frame: <Fixed Frame>
+Window Geometry:
+  Height: 900
+  Width: 1400
+  Displays:
+    collapsed: false

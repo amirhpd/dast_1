@@ -12,6 +12,7 @@ servo behind it.
 * 5 × MG996R servos, one per joint
 * Controller: Arduino Nano 33 BLE Sense Rev2, connected over USB
 * Firmware is in a separate project: [dast_1_emb](https://github.com/amirhpd/dast_1_emb)
+* Xbox 360 Kinect (model 1414) for depth sensing — see [Kinect](#kinect) below
 
 ## Requirements
 
@@ -199,6 +200,179 @@ ros2 run moveit publish_pointcloud.py     # run from the repository root
 ```
 
 It publishes to `/point_cloud`; add a **PointCloud2** display in RViz to see it.
+
+## Kinect
+
+An Xbox 360 Kinect (model 1414) provides colour and depth. It is driven by the `kinect`
+package, which is **standalone**: it is not started by `sim_robot.launch.py` or
+`run_robot.launch.py`, and nothing in the robot stack depends on it yet.
+
+It needs its 12 V power brick as well as USB. On USB alone only the motor enumerates and the
+LED blinks green — `lsusb | grep 045e` must list all three of `02b0` (motor), `02ad` (audio)
+and `02ae` (camera).
+
+```bash
+ros2 launch kinect kinect.launch.py              # driver + static TF
+ros2 launch kinect kinect.launch.py rviz:=True   # ...and RViz, preconfigured
+```
+
+| topic | type | contents |
+| --- | --- | --- |
+| `/kinect/rgb/image_raw` | `sensor_msgs/Image` | `rgb8`, 640×480, 30 Hz |
+| `/kinect/depth/image_raw` | `sensor_msgs/Image` | `16UC1`, millimetres, 0 where nothing was seen |
+| `/kinect/points` | `sensor_msgs/PointCloud2` | organised XYZRGB, one point per pixel |
+| `/kinect/rgb/camera_info`, `/kinect/depth/camera_info` | `sensor_msgs/CameraInfo` | the calibration below |
+
+Depth is captured as `FREENECT_DEPTH_REGISTERED`, so it is already aligned to the colour image
+and one calibration covers both. The point cloud is only built while something is subscribed to
+it — it is about 4.9 MB per frame.
+
+### Calibration
+
+The measured intrinsics for this unit live in
+[`src/kinect/config/kinect_rgb.yaml`](src/kinect/config/kinect_rgb.yaml) and are loaded at
+startup through the `camera_info_url` parameter
+(default `package://kinect/config/kinect_rgb.yaml`). Editing that file and restarting is
+enough — no rebuild. If the file is missing or is not 640×480, the node warns and falls back to
+nominal Kinect v1 values, and the cloud becomes approximate.
+
+| | |
+| --- | --- |
+| fx, fy | 549.996, 552.698 |
+| cx, cy | 316.370, 269.456 |
+| distortion (`plumb_bob`) | 0.168766, −0.361444, 0.002809, −0.002889, 0 |
+
+Distortion is corrected when the cloud is built, through a per-pixel lookup table computed once
+at startup. It is not a small effect: at 1 m depth it moves a corner pixel by about 4 cm.
+
+To redo the calibration — 8×6 interior corners, 25 mm squares:
+
+```bash
+ros2 launch kinect kinect.launch.py
+ros2 run camera_calibration cameracalibrator --size 8x6 --square 0.025 \
+  --no-service-check --ros-args \
+  -r image:=/kinect/rgb/image_raw -r camera:=/kinect/rgb
+```
+
+Two upstream bugs in `camera_calibration` 7.1.7 have to be patched first, or it crashes on
+startup and again on SAVE. Both are one-line fixes to installed files, and an `apt upgrade`
+silently reverts them:
+
+```bash
+sudo sed -i 's/self\.get_logger()\.warn(/self.get_logger().warning(/' \
+  /opt/ros/lyrical/lib/python3.14/site-packages/camera_calibration/camera_calibrator.py
+sudo sed -i 's/\.tostring()/.tobytes()/' \
+  /opt/ros/lyrical/lib/python3.14/site-packages/camera_calibration/mono_calibrator.py \
+  /opt/ros/lyrical/lib/python3.14/site-packages/camera_calibration/stereo_calibrator.py
+```
+
+### Where to bolt it
+
+Two measured limits decide the mounting position.
+
+**Minimum range is about 50 cm.** The closest reading over 900 frames was 502 mm, and nothing
+nearer than that exists. Anything closer is reported as 0, which becomes a *hole* in the point
+cloud — and a hole reads as empty space to MoveIt, not as an obstacle. Mount the camera so the
+whole arm workspace stays beyond roughly 60 cm.
+
+**The field of view is 60.4° × 46.9°**, computed from the intrinsics above:
+
+| distance | area covered |
+| --- | --- |
+| 0.6 m | 0.70 × 0.52 m |
+| 1.0 m | 1.16 × 0.87 m |
+| 1.5 m | 1.75 × 1.30 m |
+| 2.0 m | 2.33 × 1.74 m |
+
+The arm reaches about 0.71 m (`points.pcd` measures 7.14 model units, and the model is in
+decimetres — see *Units* below), so an eye-to-hand mount around 1 m back covers the workspace and
+stays clear of the 50 cm floor. The current mount is 1.03 m from `base_link`.
+
+Depth noise, measured as the per-pixel standard deviation over 30 s:
+
+| range | median σ | 95th percentile |
+| --- | --- | --- |
+| 0.5–0.7 m | 0.5 mm | 0.7 mm |
+| 0.9–1.1 m | 1.4 mm | 2.2 mm |
+| 1.4–1.8 m | 2.8 mm | 4.6 mm |
+
+A 1 cm octomap voxel is therefore comfortable out to about 2 m. Over the same 30 s the driver
+delivered 899 frames at 29.97 Hz with no drops, and the Kinect had its internal USB hub to
+itself; the Nano's serial traffic is negligible beside it.
+
+**Tilt.** The Kinect's motorised base holds whatever angle it was last commanded to, and forgets
+it when the 12 V drops. The driver therefore commands the tilt on every start, so it is the same
+angle every run rather than whatever someone last left it at:
+
+```bash
+ros2 launch kinect kinect.launch.py tilt_degrees:=-16   # -30..30, negative is head down
+```
+
+The default is **−16°**, matching the current mount. After moving the motor the node reads the
+angle back from the accelerometer and warns if it does not match what was commanded — a stalled
+motor is otherwise invisible. Set `set_tilt:=False` to leave the motor untouched.
+
+> The tilt must match the angle the camera-to-`base_link` transform was measured at. Change
+> `tilt_degrees` and every extrinsic is silently wrong, with nothing to show for it but a point
+> cloud that no longer lines up with the robot. Repeatability is about 1°, so bake the nominal
+> tilt into the URDF as well.
+
+### In the robot
+
+The camera is part of the robot description, so both modes publish the same topics and the
+planner sees the same obstacles:
+
+| | simulation | real robot |
+| --- | --- | --- |
+| source | Gazebo `rgbd_camera` + `ros_gz_bridge` | `kinect_node` |
+| started by | `sim_robot.launch.py` | `run_robot.launch.py` |
+| `/kinect/points` | ✔ | ✔ |
+| `/kinect/rgb/image_raw` | ✔ | ✔ |
+| `/kinect/depth/image_raw` | `32FC1`, model units | `16UC1`, millimetres |
+| `/kinect/depth/camera_info` | — | ✔ |
+| cloud `frame_id` | `kinect_link` (x forward) | `kinect_rgb_optical_frame` (z forward) |
+
+The last two rows are the only differences. Gazebo emits its cloud along the sensor link's **x**
+axis and `gz_frame_id` only labels the message rather than rotating it, so the simulated cloud is
+published in `kinect_link` and the real one in the optical frame. Both are correct in their own
+frame and TF reconciles them, so RViz and MoveIt behave identically — but code that hardcodes a
+frame name instead of asking TF will only work in one mode.
+
+The mount pose lives in `description.urdf.xacro` as `kinect_xyz` / `kinect_rpy`, and
+`sensors_3d.yaml` feeds `/kinect/points` to MoveIt's octomap at a 1 cm voxel.
+
+Gazebo needs `worlds/dast_1.sdf` rather than its stock `empty.sdf`: the stock world does not load
+`gz-sim-sensors-system`, and without it the camera is created and advertises every topic but
+never renders a frame, silently.
+
+### Units
+
+**The robot model is in decimetres, not metres.** The meshes are millimetres scaled by `0.01`, so
+one unit in the URDF is 10 cm: the 8 cm printed base is `0.8`, the 0.71 m reach is `7.14`, and
+`points.pcd` spans ±5.8. Every length in the URDF, `sensors_3d.yaml` and the Gazebo sensor
+follows that convention.
+
+The Kinect does not. Its driver publishes true metres, so `run_robot.launch.py` passes
+`point_scale: 10.0` to convert the cloud into model units. Simulation needs no such conversion —
+Gazebo already works in whatever units the URDF uses.
+
+This is worth fixing properly one day, by scaling the meshes at `0.001` and dividing every joint
+origin by ten. That would also invalidate every recorded pose, `points.pcd` and the waypoint
+YAMLs, so it is deliberately not done here.
+
+### Checking the sensor
+
+Depth and geometry come from different places, so they fail differently:
+
+* `z` comes straight from the Kinect's own factory depth calibration and is passed through
+  untouched. Check it against a tape measure on a flat wall. Expect a 1–2 cm offset, because the
+  depth origin sits inside the housing rather than at the front glass — measure at two distances
+  and compare the *difference*, which cancels the offset.
+* `x` and `y` come from the intrinsics above. Check them against a known width: hold a ruler
+  flat, facing the camera, add a **PointCloud2** display in RViz, pick the **Select** tool, box
+  a few points at each end, and read `Position → x` under each point in the **Selection** panel.
+  Values are in metres. Expand the `Point ...` rows — the number in the row itself is only an
+  index.
 
 ## License
 

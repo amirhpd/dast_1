@@ -1,0 +1,40 @@
+# Intrinsic calibration of this particular Kinect v1 (Xbox 360, model 1414),
+# measured with camera_calibration on an 8x6 / 25 mm checkerboard, 41 samples.
+#
+# The Kinect streams depth as FREENECT_DEPTH_REGISTERED -- already aligned to the
+# RGB image -- so this one calibration covers both the colour and depth topics.
+#
+# To redo it:
+#   ros2 launch kinect kinect.launch.py
+#   ros2 run camera_calibration cameracalibrator --size 8x6 --square 0.025 \
+#     --no-service-check --ros-args \
+#     -r image:=/kinect/rgb/image_raw -r camera:=/kinect/rgb
+# then paste the new numbers below. No rebuild is needed, only a restart.
+
+image_width: 640
+image_height: 480
+camera_name: kinect_rgb
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [549.9959325175896, 0.0, 316.37041917085776,
+         0.0, 552.6977189683449, 269.4559698487776,
+         0.0, 0.0, 1.0]
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0.16876584701973496, -0.36144364024906195,
+         0.0028093684866268127, -0.002888671834856116, 0.0]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1.0, 0.0, 0.0,
+         0.0, 1.0, 0.0,
+         0.0, 0.0, 1.0]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [559.0519073361022, 0.0, 314.59077391308944, 0.0,
+         0.0, 563.7539049292399, 270.4509480386482, 0.0,
+         0.0, 0.0, 1.0, 0.0]

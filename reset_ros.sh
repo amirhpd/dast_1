@@ -25,11 +25,12 @@ PATTERNS=(
     "moveit_ros_move_group/move_group"
     "install/task/lib/task/task_server_angle_node"
     "ros_gz_bridge/parameter_bridge"
+    "install/kinect/lib/kinect/kinect_node"
     "robot_state_publisher/robot_state_publisher"
     "joint_state_publisher(_gui)?/joint_state_publisher"
     "controller_manager/spawner"
     "rviz2/rviz2"
-    "bin/ros2 launch (startup|description|moveit|controller|task) "
+    "bin/ros2 launch (startup|description|moveit|controller|task|kinect) "
 )
 
 CHECK_ONLY=false

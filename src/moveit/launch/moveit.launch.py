@@ -41,13 +41,30 @@ def generate_launch_description():
         .robot_description_semantic(file_path="config/dast_1.srdf")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
         .planning_pipelines(pipelines=["ompl", "chomp", "pilz_industrial_motion_planner"])
+        .sensors_3d(file_path="config/sensors_3d.yaml")
         .to_moveit_configs()
     )
+
+    # The octomap itself, which sensors_3d.yaml only fills. Resolution is in the
+    # model's decimetres, so 0.1 is a 1 cm voxel -- comfortably above the Kinect's
+    # measured depth noise of under 3 mm out to 1.8 m. The map is built in `world`
+    # because it holds static obstacles: anchoring it to a moving link would drag
+    # the whole map around with the arm.
+    octomap_config = {
+        "octomap_frame": "world",
+        "octomap_resolution": 0.1,
+        "max_range": 40.0,
+    }
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
-        parameters=[moveit_config.to_dict(), {"use_sim_time": is_sim_param}, {"publish_robot_description_semantic": True}],
+        parameters=[
+            moveit_config.to_dict(),
+            octomap_config,
+            {"use_sim_time": is_sim_param},
+            {"publish_robot_description_semantic": True},
+        ],
         arguments=["--ros-args", "--log-level", "info"],
     )
 
