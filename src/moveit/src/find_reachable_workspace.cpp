@@ -87,35 +87,35 @@ void brute_force_workspace(const std::shared_ptr<rclcpp::Node> &node)
             for(float joint_3 = -pi/2; joint_3 < pi/2; joint_3 += resolution){
                 for(float joint_4 = -pi/2; joint_4 < pi/2; joint_4 += resolution){
                     for(float joint_5 = -pi/2; joint_5 < pi/2; joint_5 += resolution){
-                        // joint_6 is held at 0: a sixth nested loop would multiply the
-                        // run time by another 5 for very little extra reach.
-                        std::vector<double> joint_set {joint_1, joint_2, joint_3, joint_4, joint_5, 0.0};
-                        bool manipulator_at_goal = manipulator_move_group.setJointValueTarget(joint_set);
-                        if (!manipulator_at_goal)
-                        {
-                            RCLCPP_ERROR(rclcpp::get_logger(node_name), "Plan %i failed.", counter);
-                            counter++;
-                            continue; 
-                        }
-                        moveit::planning_interface::MoveGroupInterface::Plan manipulator_plan;
-                        moveit::core::MoveItErrorCode plan_result = manipulator_move_group.plan(manipulator_plan);
-                        if (plan_result == moveit::core::MoveItErrorCode::SUCCESS)
-                        {
-                            geometry_msgs::msg::Pose pose = get_pose_from_trajectory(
-                                manipulator_plan, 
-                                manipulator_move_group.getCurrentState(), 
-                                manipulator_move_group.getEndEffectorLink()
-                                );
-                            store_to_point_cloud(pose);
-                            // manipulator_move_group.move()
-                            counter++;
-                        }
-                        else
-                        {
-                            RCLCPP_ERROR(rclcpp::get_logger(node_name), "Point no. %d stored.", counter);
-                            counter++;
-                            continue;
-                            // RCLCPP_ERROR(rclcpp::get_logger(node_name), moveit::core::errorCodeToString(plan_result).c_str());
+                        for(float joint_6 = -pi/2; joint_6 < pi/2; joint_6 += resolution){
+                            std::vector<double> joint_set {joint_1, joint_2, joint_3, joint_4, joint_5, joint_6};
+                            bool manipulator_at_goal = manipulator_move_group.setJointValueTarget(joint_set);
+                            if (!manipulator_at_goal)
+                            {
+                                RCLCPP_ERROR(rclcpp::get_logger(node_name), "Plan %i failed.", counter);
+                                counter++;
+                                continue; 
+                            }
+                            moveit::planning_interface::MoveGroupInterface::Plan manipulator_plan;
+                            moveit::core::MoveItErrorCode plan_result = manipulator_move_group.plan(manipulator_plan);
+                            if (plan_result == moveit::core::MoveItErrorCode::SUCCESS)
+                            {
+                                geometry_msgs::msg::Pose pose = get_pose_from_trajectory(
+                                    manipulator_plan, 
+                                    manipulator_move_group.getCurrentState(), 
+                                    manipulator_move_group.getEndEffectorLink()
+                                    );
+                                store_to_point_cloud(pose);
+                                // manipulator_move_group.move()
+                                counter++;
+                            }
+                            else
+                            {
+                                RCLCPP_ERROR(rclcpp::get_logger(node_name), "Point no. %d stored.", counter);
+                                counter++;
+                                continue;
+                                // RCLCPP_ERROR(rclcpp::get_logger(node_name), moveit::core::errorCodeToString(plan_result).c_str());
+                            }
                         }
                     }
                 }

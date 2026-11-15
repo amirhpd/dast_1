@@ -15,10 +15,10 @@
 #
 #   ros2 run tf2_ros tf2_echo world tip -p 6   # 6 decimals; the default is 3
 #
-# The poses below came from that. They were recorded before joint_6 existed,
-# and are still exact: joint_6 sits at the old joint_5 origin with a zero
-# offset, so at joint_6 = 0 the tip lands in exactly the same place as before.
-# When in doubt use 'joints' waypoints, which need no IK at all.
+# The poses below are the forward kinematics of the joint sets noted above each
+# one, on the 6-DOF design (link_1..link_5 meshes), checked against tf2_echo.
+# They must be regenerated whenever the joint offsets in description.urdf.xacro
+# change. When in doubt use 'joints' waypoints, which need no IK at all.
 
 group: manipulator
 velocity_scaling: 0.1
@@ -27,15 +27,15 @@ acceleration_scaling: 0.1
 segments:
   # from joints 0.300, 0.200, 0.100, 0.400, 0.000, 0.000
   - type: PTP
-    pose: [0.761267, -2.460969, 6.853867, 0.700000, -0.000000, 0.300000]
+    pose: [1.298674, 0.313800, 7.228935, 0.119884, 0.275670, 0.716649]
     blend_radius: 0.0
 
   # from joints -0.400, 0.600, 0.100, 1.000, 0.200, 0.000
   - type: PTP
-    pose: [-1.843294, -4.359800, 3.893901, 1.702598, -0.198311, -0.426112]
+    pose: [3.384246, -1.139792, 6.088626, 0.672708, 0.515632, 0.846731]
     blend_radius: 0.0
 
   # from joints 0.500, 0.400, -0.600, 0.900, -0.700, 0.000
   - type: PTP
-    pose: [0.915478, -1.675772, 6.810804, 0.572300, 0.427961, -0.072300]
+    pose: [-0.601635, -1.635398, 6.480839, -0.228214, -0.812241, 1.557185]
     blend_radius: 0.0
