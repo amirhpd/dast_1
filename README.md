@@ -2,14 +2,15 @@
 
 A serial manipulator: 3D-printed mechanics, hobby servos, an Arduino Nano 33 BLE Sense Rev2,
 and a ROS 2 stack with MoveIt 2 motion planning and a Gazebo simulation.
-The mechanical design and the simulated robot have 6 joints. The printed hardware currently runs
-5 servos: the sixth joint's servo is not chosen yet, and the firmware still expects five values.
+The mechanical design and the simulated robot have 6 joints. The firmware and the
+hardware interface still expect 5 joints, so only the simulation runs the 6-joint arm for now.
 
 ## Hardware
 
 * Mechanical parts are 3D printed — printable STLs and drawings are in [`Mechanics/`](Mechanics),
   and the coordinate frames are shown in [`frames.pdf`](frames.pdf)
-* MG996R servos on joints 1–5; the servo for `joint_6` is not chosen yet
+* Drives (6-DOF design): DS3240 on joint_1, DS51150 (12 V) on joints 2–3, MG996R on joints 4–6.
+  Torque check: [`Mechanics/torque_budget.md`](Mechanics/torque_budget.md)
 * Controller: Arduino Nano 33 BLE Sense Rev2, connected over USB
 * Firmware is in a separate project: [dast_1_emb](https://github.com/amirhpd/dast_1_emb)
 * Xbox 360 Kinect (model 1414) for depth sensing — see [Kinect](#kinect) below
@@ -143,7 +144,7 @@ ros2 run moveit interface_angle 20 30 -15 40 10 0
 **Set the tip pose** — `x y z roll pitch yaw`, in **metres and radians**:
 
 ```bash
-ros2 run moveit interface_pose 1.298674 0.313800 7.228935 0.119884 0.275670 0.716649
+ros2 run moveit interface_pose 1.182586 0.196644 6.938991 0.119884 0.275670 0.716649
 ```
 
 Not every pose is reachable; see *Reachable workspace* below. To find a valid one, move the
@@ -284,7 +285,7 @@ whole arm workspace stays beyond roughly 60 cm.
 | 1.5 m | 1.75 × 1.30 m |
 | 2.0 m | 2.33 × 1.74 m |
 
-The arm reaches about 0.74 m (7.38 model units from the base to `tip`, and the model is in
+The arm reaches about 0.71 m (7.07 model units from the base to `tip`, and the model is in
 decimetres — see *Units* below), so an eye-to-hand mount around 1 m back covers the workspace and
 stays clear of the 50 cm floor. The current mount is 1.03 m from `base_link`.
 
@@ -348,7 +349,7 @@ never renders a frame, silently.
 ### Units
 
 **The robot model is in decimetres, not metres.** The meshes are millimetres scaled by `0.01`, so
-one unit in the URDF is 10 cm: the 86 mm printed base is `0.863`, the 0.74 m reach is `7.38`, and
+one unit in the URDF is 10 cm: the 86 mm printed base is `0.863`, the 0.71 m reach is `7.07`, and
 the old `points.pcd` spans ±5.8. Every length in the URDF, `sensors_3d.yaml` and the Gazebo sensor
 follows that convention.
 

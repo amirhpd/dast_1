@@ -12,7 +12,7 @@
     <!-- Kinect mount, eye-to-hand. Pose of kinect_link in base_link.
          BEWARE: this model is not in metres. The meshes are millimetres scaled by
          0.01, so one unit here is one decimetre, and the arm's 0.71 m reach shows
-         up as 7.14. The tape-measured mount (x -0.9, y 0.31, z 0.39 m) is
+         up as 7.07. The tape-measured mount (x -0.9, y 0.31, z 0.39 m) is
          therefore multiplied by ten below.
          Pitch is positive because REP-103 rotates +x toward -z about +y, so
          positive pitch is nose *down*, the opposite sign to the Kinect motor's
@@ -74,9 +74,9 @@
     <xacro:arm_link name="base_2_link" mesh="base_2"/>
     <xacro:arm_link name="link_1"      mesh="link_1"/>
     <xacro:arm_link name="link_2"      mesh="link_2"/>
-    <xacro:arm_link name="link_3"      mesh="link_3"/>
-    <xacro:arm_link name="link_4"      mesh="link_4" rpy="0 -${PI/2} 0"/>
-    <xacro:arm_link name="link_5"      mesh="link_5" rpy="0 ${PI} ${PI/2}"/>
+    <xacro:arm_link name="link_3"      mesh="link_3" rpy="0 0 ${PI/2}"/>
+    <xacro:arm_link name="link_4"      mesh="link_4"/>
+    <xacro:arm_link name="link_5"      mesh="link_5" rpy="${PI} 0 0"/>
     <xacro:arm_link name="tip_link"    mesh="tip"/>
 
     <!-- End-effector point, at the far end of tip.stl. MoveIt plans for this frame. -->
@@ -89,12 +89,12 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
-    <xacro:arm_joint name="joint_1" parent="base_link"   child="base_2_link" xyz="0 0 1.613"           axis="0 0 1"/>
-    <xacro:arm_joint name="joint_2" parent="base_2_link" child="link_1"      xyz="0 0 0"               axis="0 1 0"/>
-    <xacro:arm_joint name="joint_3" parent="link_1"      child="link_2"      xyz="0 0 1.37"            axis="0 1 0"/>
-    <xacro:arm_joint name="joint_4" parent="link_2"      child="link_3"      xyz="-0.249 -0.084 1.38"  axis="0 0 1"/>
-    <xacro:arm_joint name="joint_5" parent="link_3"      child="link_4"      xyz="0 0 0.91"            axis="0 1 0"/>
-    <xacro:arm_joint name="joint_6" parent="link_4"      child="link_5"      xyz="0 0 -0.27"           axis="1 0 0"/>
+    <xacro:arm_joint name="joint_1" parent="base_link"   child="base_2_link" xyz="0 0 1.613"            axis="0 0 1"/>
+    <xacro:arm_joint name="joint_2" parent="base_2_link" child="link_1"      xyz="0 0 0"                axis="0 1 0"/>
+    <xacro:arm_joint name="joint_3" parent="link_1"      child="link_2"      xyz="0 -0.084 1.37"        axis="0 1 0"/>
+    <xacro:arm_joint name="joint_4" parent="link_2"      child="link_3"      xyz="-0.2725 -0.084 1.06"  axis="0 0 1"/>
+    <xacro:arm_joint name="joint_5" parent="link_3"      child="link_4"      xyz="0 0 0.91"             axis="1 0 0"/>
+    <xacro:arm_joint name="joint_6" parent="link_4"      child="link_5"      xyz="-0.025 0.0175 -0.27"  axis="0 1 0"/>
 
     <joint name="virtual_joint_tip_link" type="fixed">
         <parent link="link_5"/>

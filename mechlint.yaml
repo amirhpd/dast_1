@@ -31,9 +31,8 @@ components:                        # mass that is not in the meshes
   #
   # `at: [x, y, z]` is the centre of the servo CASE (not its spline), in the frame of the
   # link it is listed under, in URDF units: decimetres, so millimetres / 100.
-  # each with the measured position. Measure in CATIA in that part's own axes; base_1,
-  # link_1 and link_2 copy over directly (/100). link_4's mesh is rotated in the URDF
-  # (rpy 0 -pi/2 0), so convert CATIA (x, y, z) to  at: [-z, y, x] / 100.
+  # Measure it in CATIA in that part's own axes. None of the links that carry a servo
+  # has a rotated mesh in the URDF, so CATIA (x, y, z) copies over directly (/100).
   # "on axis" in each comment is where `drives:` alone would put it, for reference.
   base_link:                       # base_1.stl, fixed
     - { actuator: ds3240,      drives: joint_1, at: [0.27, 0, 0.27] }   # parent side; on axis [0, 0, 1.613]
@@ -41,23 +40,19 @@ components:                        # mass that is not in the meshes
     - { actuator: ds51150_12v, drives: joint_2, at: [0, 0, -0.3] }   # child side;  on axis [0, 0, 0]
   link_2:
     - { actuator: ds51150_12v, drives: joint_3, at: [0, 0, -0.3] }   # child side;  on axis [0, 0, 0]
-    - { actuator: n20_50,      drives: joint_4, at: [0, -0.1, 0.95] }   # parent side; on axis [-0.249, -0.084, 1.38]
-  link_4:                          # carries both wrist servos; mesh rotated, see above
-    - { actuator: mg996r,      drives: joint_5, at: [-0.2, 0, 0] }   # child side;  on axis [0, 0, 0]
-    - { actuator: mg996r,      drives: joint_6, at: [0, -0.1, -0.25] }   # parent side; on axis [0, 0, -0.27]
+    - { actuator: mg996r,      drives: joint_4, at: [-0.3, 0, 0.8] }   # parent side; on axis [-0.2725, -0.084, 1.06]
+  link_4:                          # carries both wrist servos
+    - { actuator: mg996r,      drives: joint_5, at: [0, 0, 0.2] }   # child side;  on axis [0, 0, 0]
+    - { actuator: mg996r,      drives: joint_6, at: [-0.25, -0.1, 0] }   # parent side; on axis [-0.025, 0.0175, -0.27]
   # base_2_link, link_3, link_5 and tip_link carry no motor; tip_link is fixed to link_5.
 
 actuators:
-  voltage: 6.0                     # default rail: DS3240, N20 and both MG996R
+  voltage: 6.0                     # default rail: DS3240 and the three MG996R
   joints:
     joint_1: ds3240
     joint_2: { actuator: ds51150_12v, voltage: 12.0 }   # its own 12 V rail
     joint_3: { actuator: ds51150_12v, voltage: 12.0 }
-    joint_4:
-      actuator: n20_50
-      # 1:2 spur stage, small gear on the motor: twice the torque at the joint.
-      # No efficiency measured, so mechlint treats the stage as ideal and says so.
-      transmission: { ratio: 2.0 }
+    joint_4: mg996r
     joint_5: mg996r
     joint_6: mg996r
 
