@@ -32,10 +32,10 @@
          the command. Lengths in it are decimetres, like the rest of this file. -->
     <xacro:include filename="$(find description)/urdf/inertials.xacro" />
 
-    <!-- One link of the arm: its STL (in mm, origin on the link's own joint axis,
-         see joint_geometry.txt) as both visual and collision. The collision mesh is
-         the visual one until simplified *_collision.stl files exist: pass
-         collision:=<name> then, and nothing else changes. -->
+    <!-- One link of the arm: meshes/<mesh>.stl (in mm, origin on the link's own joint
+         axis) as both visual and collision. `rpy` rotates both. To use a simplified
+         collision mesh, pass collision:=<name> for meshes/<name>.stl; it must enclose
+         the visual mesh, see CLAUDE.md. -->
     <xacro:macro name="arm_link" params="name mesh collision:='' rpy:='0 0 0'">
         <link name="${name}">
             <!-- mechlint_inertial_<name>, from inertials.xacro -->
@@ -55,7 +55,7 @@
         </link>
     </xacro:macro>
 
-    <!-- One revolute joint. Offsets are joint_geometry.txt (mm) divided by 100. -->
+    <!-- One revolute joint. Offsets are the CAD joint positions (mm) divided by 100. -->
     <xacro:macro name="arm_joint" params="name parent child xyz axis">
         <joint name="${name}" type="revolute">
             <parent link="${parent}"/>
@@ -76,7 +76,7 @@
     <xacro:arm_link name="link_2"      mesh="link_2"/>
     <xacro:arm_link name="link_3"      mesh="link_3" rpy="0 0 ${PI/2}"/>
     <xacro:arm_link name="link_4"      mesh="link_4"/>
-    <xacro:arm_link name="link_5"      mesh="link_5" rpy="${PI} 0 0"/>
+    <xacro:arm_link name="link_5"      mesh="link_5"/>
     <xacro:arm_link name="tip_link"    mesh="tip"/>
 
     <!-- End-effector point, at the far end of tip.stl. MoveIt plans for this frame. -->

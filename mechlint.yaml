@@ -31,8 +31,8 @@ components:                        # mass that is not in the meshes
   #
   # `at: [x, y, z]` is the centre of the servo CASE (not its spline), in the frame of the
   # link it is listed under, in URDF units: decimetres, so millimetres / 100.
-  # Measure it in CATIA in that part's own axes. None of the links that carry a servo
-  # has a rotated mesh in the URDF, so CATIA (x, y, z) copies over directly (/100).
+  # Measure it in CAD in that part's own axes. None of the links that carry a servo
+  # has a rotated mesh in the URDF, so CAD (x, y, z) copies over directly (/100).
   # "on axis" in each comment is where `drives:` alone would put it, for reference.
   base_link:                       # base_1.stl, fixed
     - { actuator: ds3240,      drives: joint_1, at: [0.27, 0, 0.27] }   # parent side; on axis [0, 0, 1.613]

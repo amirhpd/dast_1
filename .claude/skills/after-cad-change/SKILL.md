@@ -8,7 +8,7 @@ description: Bring DAST-1 back in sync after the user changes the CAD — new or
 Everything below is derived from three sources of truth. Never edit them to make a result
 look right — ask the user instead:
 
-- `src/description/meshes/*.stl` (the user's CATIA exports)
+- `src/description/meshes/*.stl` (the user's CAD exports)
 - `src/description/urdf/description.urdf.xacro` (offsets, axes, mesh `rpy`)
 - `mechlint.yaml` (drives, voltages, servo `at:` positions)
 
@@ -26,13 +26,13 @@ Note which STLs, joint offsets, joint axes and mesh `rpy` changed. Then decide:
 
 - **A mesh that carries a servo changed** (the links listed under `components:` in
   `mechlint.yaml`) and `mechlint.yaml` did not: the servo `at:` positions are probably stale.
-  Ask the user to re-measure them in CATIA. Do not guess.
+  Ask the user to re-measure them in CAD. Do not guess.
 - **A mesh `rpy` changed on a link that carries a servo:** the `at:` values must be turned
-  with it. `at` = R · (CATIA x, y, z) / 100, where R is the `rpy` matrix (fixed axes, roll then
+  with it. `at` = R · (CAD x, y, z) / 100, where R is the `rpy` matrix (fixed axes, roll then
   pitch then yaw). Verify by checking that the link's centre of mass from `$M inertia` moved by
   the same rotation.
-- **Rotation requests:** ask for an axis mapping ("CATIA x points along URDF -z, ...") rather
-  than "rotate by 90 on x then z" — CATIA rotates about the part's moving axes, URDF `rpy` about
+- **Rotation requests:** ask for an axis mapping ("CAD x points along URDF -z, ...") rather
+  than "rotate by 90 on x then z" — the CAD tool rotates about the part's moving axes, URDF `rpy` about
   fixed axes, so the words are ambiguous. Check the resulting matrix with numpy.
 
 ## 2. mechlint
@@ -53,7 +53,7 @@ these outputs, never from your own arithmetic. If a joint fails, run
 Each component line ends with `# parent side; on axis [...]` or `# child side; on axis [0, 0, 0]`.
 For a parent-side servo, "on axis" is the `xyz` of the joint it drives, from the xacro. Fix any
 that drifted. Also check the `voltage:` comment lists the actual drives on the default rail, and
-that the CATIA-conversion comment matches the current mesh rotations. Don't change values.
+that the CAD-conversion comment matches the current mesh rotations. Don't change values.
 
 ## 4. Build and validate
 
