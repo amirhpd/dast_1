@@ -6,13 +6,22 @@
     <xacro:property name="path" value="package://description/meshes" />
     <xacro:property name="scale" value="0.01 0.01 0.01" />
     <xacro:property name="PI" value="3.14159265359" />
-    <xacro:property name="effort" value="20.0" />
+    <!-- Joint effort limits: each drive's stall torque at its supply, in real N*m, from
+         mechlint.yaml via `mechlint torque` (all bench-measured, `low` confidence).
+         Gazebo reads this decimetre model as metres, so every lever arm, and every
+         torque gravity puts on a joint, is ten times the real one. arm_joint multiplies
+         by effort_scale to match; with the real values the shoulder cannot hold the
+         arm up in sim. -->
+    <xacro:property name="effort_scale" value="10.0" />
+    <xacro:property name="effort_ds3240" value="2.36" />    <!-- DS3240MG, 6 V -->
+    <xacro:property name="effort_ds51150" value="11.04" />  <!-- DS51150, 12 V -->
+    <xacro:property name="effort_mg996r" value="1.10" />    <!-- MG996R, 6 V -->
     <xacro:property name="velocity" value="10.0" />
 
     <!-- Kinect mount, eye-to-hand. Pose of kinect_link in base_link.
          BEWARE: this model is not in metres. The meshes are millimetres scaled by
          0.01, so one unit here is one decimetre, and the arm's 0.71 m reach shows
-         up as 7.14. The tape-measured mount (x -0.9, y 0.31, z 0.39 m) is
+         up as 7.07. The tape-measured mount (x -0.9, y 0.31, z 0.39 m) is
          therefore multiplied by ten below.
          Pitch is positive because REP-103 rotates +x toward -z about +y, so
          positive pitch is nose *down*, the opposite sign to the Kinect motor's
@@ -27,121 +36,59 @@
     <xacro:property name="kinect_clip_near" value="5.0" />
     <xacro:property name="kinect_clip_far" value="40.0" />
 
-    <xacro:macro name="default_inertial" params="mass">
-        <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <mass value="${mass}" />
-            <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
-        </inertial>
+    <!-- One macro per link, computed from the meshes and mechlint.yaml by
+         `mechlint inertia -w src/description/urdf/`. Generated: do not edit it, re-run
+         the command. Lengths in it are decimetres, like the rest of this file. -->
+    <xacro:include filename="$(find description)/urdf/inertials.xacro" />
+
+    <!-- One link of the arm: meshes/<mesh>.stl (in mm, origin on the link's own joint
+         axis) as both visual and collision. `rpy` rotates both. To use a simplified
+         collision mesh, pass collision:=<name> for meshes/<name>.stl; it must enclose
+         the visual mesh, see CLAUDE.md. -->
+    <xacro:macro name="arm_link" params="name mesh collision:='' rpy:='0 0 0'">
+        <link name="${name}">
+            <!-- mechlint_inertial_<name>, from inertials.xacro -->
+            <xacro:call macro="mechlint_inertial_${name}"/>
+            <visual>
+                <origin rpy="${rpy}" xyz="0 0 0"/>
+                <geometry>
+                    <mesh filename="${path}/${mesh}.stl" scale="${scale}"/>
+                </geometry>
+            </visual>
+            <collision>
+                <origin rpy="${rpy}" xyz="0 0 0"/>
+                <geometry>
+                    <mesh filename="${path}/${collision if collision else mesh}.stl" scale="${scale}"/>
+                </geometry>
+            </collision>
+        </link>
+    </xacro:macro>
+
+    <!-- One revolute joint. Offsets are the CAD joint positions (mm) divided by 100. -->
+    <xacro:macro name="arm_joint" params="name parent child xyz axis effort">
+        <joint name="${name}" type="revolute">
+            <parent link="${parent}"/>
+            <child link="${child}"/>
+            <origin xyz="${xyz}" rpy="0 0 0"/>
+            <axis xyz="${axis}"/>
+            <limit lower="-${PI / 2}" upper="${PI / 2}"
+                   effort="${effort * effort_scale}" velocity="${velocity}"/>
+        </joint>
     </xacro:macro>
 
     <!-- LINKS -->
     <link name="world"/>
 
-    <link name="base_link">
-        <xacro:default_inertial mass="0.2"/>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/base.stl" scale="${scale}"/>
-            </geometry>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/base_collision.stl" scale="${scale}"/>
-            </geometry>              
-        </collision>
-    </link>
+    <xacro:arm_link name="base_link"   mesh="base_1"/>
+    <xacro:arm_link name="base_2_link" mesh="base_2"/>
+    <xacro:arm_link name="link_1"      mesh="link_1"/>
+    <xacro:arm_link name="link_2"      mesh="link_2"/>
+    <xacro:arm_link name="link_3"      mesh="link_3" rpy="0 0 ${PI/2}"/>
+    <xacro:arm_link name="link_4"      mesh="link_4"/>
+    <xacro:arm_link name="link_5"      mesh="link_5"/>
+    <xacro:arm_link name="tip_link"    mesh="tip"/>
 
-    <link name="rotary_link">
-        <xacro:default_inertial mass="0.05"/>
-        <visual>
-            <origin rpy="0 0 ${PI/2}" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/rotary.stl" scale="${scale}"/>
-            </geometry>
-        </visual>
-        <collision>
-            <origin rpy="-${PI/2} 0 -${PI/2}" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/rotary_collision.stl" scale="${scale}"/>
-            </geometry>      
-        </collision>
-    </link>
-
-    <link name="arm_1_link">
-        <xacro:default_inertial mass="0.1"/>
-        <visual>
-            <origin rpy="0 ${PI/2} ${PI}" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/arm_1.stl" scale="${scale}"/>
-            </geometry>
-        </visual>
-        <collision>
-            <origin rpy="0 ${PI/2} ${PI}" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/arm_1_collision.stl" scale="${scale}"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <link name="arm_2_link">
-        <xacro:default_inertial mass="0.1"/>
-        <visual>
-            <origin rpy="0 ${PI/2} 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/arm_2.stl" scale="${scale}"/>
-            </geometry>
-        </visual>
-        <collision>
-            <origin rpy="0 ${PI/2} 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/arm_2_collision.stl" scale="${scale}"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <link name="arm_3_link">
-        <xacro:default_inertial mass="0.1"/>
-        <visual>
-            <origin rpy="0 ${PI/2} ${PI}" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/arm_3.stl" scale="${scale}"/>
-            </geometry>
-        </visual>
-        <collision>
-            <origin rpy="0 ${PI/2} ${PI}" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/arm_3_collision.stl" scale="${scale}"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <!-- TEMPORARY, SIMULATION ONLY. Placeholder for the sixth DOF: carries no mesh
-         of its own, so at joint_6 = 0 the robot looks exactly as it did when the
-         arm had 5 joints. The real joint, with its own geometry and a servo behind
-         it, will replace this. See "The sixth joint" in CLAUDE.md. -->
-    <link name="wrist_link">
-        <xacro:default_inertial mass="0.01"/>
-    </link>
-
-    <link name="gripper_link">
-        <xacro:default_inertial mass="0.05"/>
-        <visual>
-            <origin rpy="-${PI/2} 0 ${PI}" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/gripper_3.stl" scale="${scale}"/>
-            </geometry>
-        </visual>
-        <collision>
-            <origin rpy="-${PI/2} 0 ${PI}" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="${path}/gripper_3_collision.stl" scale="${scale}"/>
-            </geometry>
-        </collision>
-    </link>
-
+    <!-- End-effector point, at the far end of tip.stl. MoveIt plans for this frame. -->
     <link name="tip"/>
 
     <!-- JOINTS -->
@@ -149,74 +96,33 @@
         <parent link="world"/>
         <child link="base_link"/>
         <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint> 
-
-    <joint name ="joint_1" type="revolute">
-        <parent link="base_link"/>
-        <child link = "rotary_link"/>
-        <origin xyz="0 0 1.47"/>
-        <axis xyz="0 0 1"/>
-        <limit lower="-${PI / 2}" upper="${PI / 2}" 
-               effort="${effort}" velocity="${velocity}"/>
     </joint>
 
-    <joint name ="joint_2" type="revolute">
-        <parent link="rotary_link"/>
-        <child link = "arm_1_link"/>
-        <origin xyz="0 0 0"/>
-        <axis xyz="1 0 0"/>
-        <limit lower="-${PI / 2}" upper="${PI / 2}" 
-               effort="${effort}" velocity="${velocity}"/>
-    </joint>
+    <xacro:arm_joint name="joint_1" parent="base_link"   child="base_2_link" xyz="0 0 1.613"            axis="0 0 1" effort="${effort_ds3240}"/>
+    <xacro:arm_joint name="joint_2" parent="base_2_link" child="link_1"      xyz="0 0 0"                axis="0 1 0" effort="${effort_ds51150}"/>
+    <xacro:arm_joint name="joint_3" parent="link_1"      child="link_2"      xyz="0 -0.084 1.37"        axis="0 1 0" effort="${effort_ds51150}"/>
+    <xacro:arm_joint name="joint_4" parent="link_2"      child="link_3"      xyz="-0.2725 -0.084 1.06"  axis="0 0 1" effort="${effort_mg996r}"/>
+    <xacro:arm_joint name="joint_5" parent="link_3"      child="link_4"      xyz="0 0 0.91"             axis="1 0 0" effort="${effort_mg996r}"/>
+    <xacro:arm_joint name="joint_6" parent="link_4"      child="link_5"      xyz="-0.025 0.0175 -0.27"  axis="0 1 0" effort="${effort_mg996r}"/>
 
-    <joint name ="joint_3" type="revolute">
-        <parent link="arm_1_link"/>
-        <child link = "arm_2_link"/>
-        <origin xyz="0 0 1.545"/>
-        <axis xyz="1 0 0"/>
-        <limit lower="-${PI / 2}" upper="${PI / 2}" 
-               effort="${effort}" velocity="${velocity}"/>
-    </joint>
-
-    <joint name ="joint_4" type="revolute">
-        <parent link="arm_2_link"/>
-        <child link = "arm_3_link"/>
-        <origin xyz="0 0 1.945"/>
-        <axis xyz="1 0 0"/>
-        <limit lower="-${PI / 2}" upper="${PI / 2}" 
-               effort="${effort}" velocity="${velocity}"/>
-    </joint>
-
-    <joint name ="joint_5" type="revolute">
-        <parent link="arm_3_link"/>
-        <child link = "wrist_link"/>
-        <origin xyz="0 0 0.88"/>
-        <axis xyz="0 0 1"/>
-        <limit lower="-${PI / 2}" upper="${PI / 2}" 
-               effort="${effort}" velocity="${velocity}"/>
-    </joint>
-
-    <joint name ="joint_6" type="revolute">
-        <parent link="wrist_link"/>
-        <child link = "gripper_link"/>
-        <origin xyz="0 0 0"/>
-        <axis xyz="0 1 0"/>
-        <limit lower="-${PI / 2}" upper="${PI / 2}"
-               effort="${effort}" velocity="${velocity}"/>
+    <joint name="virtual_joint_tip_link" type="fixed">
+        <parent link="link_5"/>
+        <child link="tip_link"/>
+        <origin xyz="0 0 0.71" rpy="0 0 0"/>
     </joint>
 
     <joint name="virtual_joint_tip" type="fixed">
-        <parent link="gripper_link"/>
+        <parent link="tip_link"/>
         <child link="tip"/>
-        <origin xyz="0 0 1.75" rpy="0 0 0"/>
-    </joint> 
+        <origin xyz="0 0 1.666" rpy="0 0 0"/>
+    </joint>
 
     <!-- KINECT -->
     <!-- Present in both modes: the real driver and the simulated sensor publish
          the same topics in the same frames, so nothing downstream can tell them
          apart. Only the sensor block below is simulation-only. -->
     <link name="kinect_link">
-        <xacro:default_inertial mass="0.5"/>
+        <xacro:mechlint_inertial_kinect_link/>
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>

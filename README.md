@@ -2,14 +2,15 @@
 
 A serial manipulator: 3D-printed mechanics, hobby servos, an Arduino Nano 33 BLE Sense Rev2,
 and a ROS 2 stack with MoveIt 2 motion planning and a Gazebo simulation.
-The hardware has 5 joints; the simulated robot has a sixth, `joint_6`, a wrist rotation with no
-servo behind it.
+The mechanical design and the simulated robot have 6 joints. The firmware and the
+hardware interface still expect 5 joints, so only the simulation runs the 6-joint arm for now.
 
 ## Hardware
 
 * Mechanical parts are 3D printed — printable STLs and drawings are in [`Mechanics/`](Mechanics),
   and the coordinate frames are shown in [`frames.pdf`](frames.pdf)
-* 5 × MG996R servos, one per joint
+* Drives (6-DOF design): DS3240 on joint_1, DS51150 (12 V) on joints 2–3, MG996R on joints 4–6.
+  Torque check: [`Mechanics/torque_budget.md`](Mechanics/torque_budget.md)
 * Controller: Arduino Nano 33 BLE Sense Rev2, connected over USB
 * Firmware is in a separate project: [dast_1_emb](https://github.com/amirhpd/dast_1_emb)
 * Xbox 360 Kinect (model 1414) for depth sensing — see [Kinect](#kinect) below
@@ -131,19 +132,19 @@ want the tip, then press *Plan & Execute*.
 **Run a stored task.** Three canned poses ship with the project, numbered 0, 1 and 2:
 
 ```bash
-ros2 action send_goal /task_server_angle msgs/action/TaskAction "task_number: 1"
+ros2 action send_goal /task_server_angle msgs/action/TaskAction "task_number: 0"
 ```
 
-**Set the joint angles** — five values, in **degrees**, one per joint:
+**Set the joint angles** — six values, in **degrees**, one per joint:
 
 ```bash
-ros2 run moveit interface_angle 20 30 -15 40 10
+ros2 run moveit interface_angle -33 58 57 37 -44 58
 ```
 
-**Set the tip pose** — `x y z roll pitch yaw`, in **metres and radians**:
+**Set the tip pose** — `x y z roll pitch yaw`, in **decimetres** (the model's units) **and radians**:
 
 ```bash
-ros2 run moveit interface_pose 1.173 -3.223 6.196 0.953 -0.143 0.450
+ros2 run moveit interface_pose 3.486 -0.400 0.321 2.258 0.428 2.732
 ```
 
 Not every pose is reachable; see *Reachable workspace* below. To find a valid one, move the
@@ -158,8 +159,8 @@ ros2 run moveit interface_sequence src/moveit/config/sequence_example.yaml
 
 Copy `src/moveit/config/sequence_example.yaml` and edit its `segments:` list to make your
 own path. Each segment takes either `joints:` (radians) or `pose:`, and the file's comments
-explain the rest. Leave `blend_radius: 0` — corner-rounding needs a 6-DOF arm and DAST-1
-has 5, so any other value fails the whole sequence.
+explain the rest. `blend_radius` rounds the corner at a waypoint instead of stopping on it;
+`0.3` works on this arm, and the last segment must always be `0`.
 
 #### Straight to the controller — no collision checking
 
@@ -170,8 +171,8 @@ itself, so keep the workspace clear.
 
 ```bash
 ros2 topic pub --once /manipulator_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory \
-'{joint_names: [joint_1, joint_2, joint_3, joint_4, joint_5],
-  points: [{positions: [0.3, 0.4, -0.2, 0.5, 0.1], time_from_start: {sec: 3}}]}'
+'{joint_names: [joint_1, joint_2, joint_3, joint_4, joint_5, joint_6],
+  points: [{positions: [0.3, 0.4, -0.2, 0.5, 0.1, 0.0], time_from_start: {sec: 3}}]}'
 ```
 
 **Send it and wait for the result.** Same thing as an action, so you get success or failure
@@ -180,9 +181,9 @@ back, and `--feedback` will stream progress while it runs:
 ```bash
 ros2 action send_goal /manipulator_controller/follow_joint_trajectory \
   control_msgs/action/FollowJointTrajectory \
-'{trajectory: {joint_names: [joint_1, joint_2, joint_3, joint_4, joint_5],
-  points: [{positions: [0.4, 0.2, 0.3, 0.5, 0.0], time_from_start: {sec: 2}},
-           {positions: [-0.4, 0.6, 0.1, 1.0, 0.2], time_from_start: {sec: 5}}]}}'
+'{trajectory: {joint_names: [joint_1, joint_2, joint_3, joint_4, joint_5, joint_6],
+  points: [{positions: [0.4, 0.2, 0.3, 0.5, 0.0, 0.0], time_from_start: {sec: 2}},
+           {positions: [-0.4, 0.6, 0.1, 1.0, 0.2, 0.0], time_from_start: {sec: 5}}]}}'
 ```
 
 `time_from_start` counts from the beginning of the trajectory, so each waypoint's value must
@@ -191,8 +192,8 @@ be larger than the one before it.
 ### Reachable workspace
 
 All joints are limited to ±90°, and not every pose in that range can be reached.
-The scan sweeps `joint_1`..`joint_5` with `joint_6` held at 0, so it understates the
-reachable workspace of the 6-DOF description.
+The scan (`find_reachable_workspace`) sweeps all six joints. **The checked-in `points.pcd` is
+still from the old 5-joint design** and has not been regenerated for the new one yet.
 `points.pcd` holds the measured reachable workspace:
 
 ```bash
@@ -284,7 +285,7 @@ whole arm workspace stays beyond roughly 60 cm.
 | 1.5 m | 1.75 × 1.30 m |
 | 2.0 m | 2.33 × 1.74 m |
 
-The arm reaches about 0.71 m (`points.pcd` measures 7.14 model units, and the model is in
+The arm reaches about 0.71 m (7.07 model units from the base to `tip`, and the model is in
 decimetres — see *Units* below), so an eye-to-hand mount around 1 m back covers the workspace and
 stays clear of the 50 cm floor. The current mount is 1.03 m from `base_link`.
 
@@ -348,8 +349,8 @@ never renders a frame, silently.
 ### Units
 
 **The robot model is in decimetres, not metres.** The meshes are millimetres scaled by `0.01`, so
-one unit in the URDF is 10 cm: the 8 cm printed base is `0.8`, the 0.71 m reach is `7.14`, and
-`points.pcd` spans ±5.8. Every length in the URDF, `sensors_3d.yaml` and the Gazebo sensor
+one unit in the URDF is 10 cm: the 86 mm printed base is `0.863`, the 0.71 m reach is `7.07`, and
+the old `points.pcd` spans ±5.8. Every length in the URDF, `sensors_3d.yaml` and the Gazebo sensor
 follows that convention.
 
 The Kinect does not. Its driver publishes true metres, so `run_robot.launch.py` passes

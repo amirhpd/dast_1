@@ -14,9 +14,9 @@
 # NOTE: blend_radius > 0 used to fail on this robot with the opaque
 # "error code: 99999 / Blending failed". Blending samples Cartesian poses
 # through the corner and solves IK for each one, and the old 5-DOF arm could
-# not reach most of them. Adding joint_6 made the arm 6-DOF and blending now
-# works -- these same three waypoints run at blend_radius 0.3. The examples
-# below stay at 0 so they stop exactly on each point.
+# not reach most of them. The 6-DOF design blends fine -- these same three
+# waypoints run at blend_radius 0.3. The examples below stay at 0 so they stop
+# exactly on each point.
 
 group: manipulator
 velocity_scaling: 0.1
