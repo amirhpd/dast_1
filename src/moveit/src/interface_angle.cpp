@@ -4,7 +4,7 @@
 // commands to run:
 // ros2 launch description gazebo.launch.py 
 // ros2 launch moveit moveit.launch.py 
-// ros2 run moveit interface_angle 60 30 90 90 0 0        (6 angles, in DEGREES)
+// ros2 run moveit interface_angle -33 58 57 37 -44 58        (6 angles, in DEGREES)
 
 
 #include <rclcpp/rclcpp.hpp>

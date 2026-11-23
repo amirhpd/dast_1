@@ -132,19 +132,19 @@ want the tip, then press *Plan & Execute*.
 **Run a stored task.** Three canned poses ship with the project, numbered 0, 1 and 2:
 
 ```bash
-ros2 action send_goal /task_server_angle msgs/action/TaskAction "task_number: 1"
+ros2 action send_goal /task_server_angle msgs/action/TaskAction "task_number: 0"
 ```
 
 **Set the joint angles** — six values, in **degrees**, one per joint:
 
 ```bash
-ros2 run moveit interface_angle 20 30 -15 40 10 0
+ros2 run moveit interface_angle -33 58 57 37 -44 58
 ```
 
-**Set the tip pose** — `x y z roll pitch yaw`, in **metres and radians**:
+**Set the tip pose** — `x y z roll pitch yaw`, in **decimetres** (the model's units) **and radians**:
 
 ```bash
-ros2 run moveit interface_pose 1.182586 0.196644 6.938991 0.119884 0.275670 0.716649
+ros2 run moveit interface_pose 3.486 -0.400 0.321 2.258 0.428 2.732
 ```
 
 Not every pose is reachable; see *Reachable workspace* below. To find a valid one, move the

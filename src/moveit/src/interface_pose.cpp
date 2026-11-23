@@ -4,9 +4,7 @@
 // commands to run:
 // ros2 launch description gazebo.launch.py 
 // ros2 launch moveit moveit.launch.py 
-// ros2 run moveit interface_pose 2.094 -1.345 0.038 -3.053 0.000 1.000
-// valid pose examples:
-// 0.163 -1.44 5.496 0.416 -0.831 1.144
+// ros2 run moveit interface_pose 3.486 -0.400 0.321 2.258 0.428 2.732   (x y z in decimetres, roll pitch yaw in radians)
 // To find a valid example, move the robot by angle and check the TF:
 // ros2 run tf2_ros tf2_echo world tip
 

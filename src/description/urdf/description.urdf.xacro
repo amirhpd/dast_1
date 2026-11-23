@@ -6,7 +6,16 @@
     <xacro:property name="path" value="package://description/meshes" />
     <xacro:property name="scale" value="0.01 0.01 0.01" />
     <xacro:property name="PI" value="3.14159265359" />
-    <xacro:property name="effort" value="20.0" />
+    <!-- Joint effort limits: each drive's stall torque at its supply, in real N*m, from
+         mechlint.yaml via `mechlint torque` (all bench-measured, `low` confidence).
+         Gazebo reads this decimetre model as metres, so every lever arm, and every
+         torque gravity puts on a joint, is ten times the real one. arm_joint multiplies
+         by effort_scale to match; with the real values the shoulder cannot hold the
+         arm up in sim. -->
+    <xacro:property name="effort_scale" value="10.0" />
+    <xacro:property name="effort_ds3240" value="2.36" />    <!-- DS3240MG, 6 V -->
+    <xacro:property name="effort_ds51150" value="11.04" />  <!-- DS51150, 12 V -->
+    <xacro:property name="effort_mg996r" value="1.10" />    <!-- MG996R, 6 V -->
     <xacro:property name="velocity" value="10.0" />
 
     <!-- Kinect mount, eye-to-hand. Pose of kinect_link in base_link.
@@ -56,14 +65,14 @@
     </xacro:macro>
 
     <!-- One revolute joint. Offsets are the CAD joint positions (mm) divided by 100. -->
-    <xacro:macro name="arm_joint" params="name parent child xyz axis">
+    <xacro:macro name="arm_joint" params="name parent child xyz axis effort">
         <joint name="${name}" type="revolute">
             <parent link="${parent}"/>
             <child link="${child}"/>
             <origin xyz="${xyz}" rpy="0 0 0"/>
             <axis xyz="${axis}"/>
             <limit lower="-${PI / 2}" upper="${PI / 2}"
-                   effort="${effort}" velocity="${velocity}"/>
+                   effort="${effort * effort_scale}" velocity="${velocity}"/>
         </joint>
     </xacro:macro>
 
@@ -89,12 +98,12 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
-    <xacro:arm_joint name="joint_1" parent="base_link"   child="base_2_link" xyz="0 0 1.613"            axis="0 0 1"/>
-    <xacro:arm_joint name="joint_2" parent="base_2_link" child="link_1"      xyz="0 0 0"                axis="0 1 0"/>
-    <xacro:arm_joint name="joint_3" parent="link_1"      child="link_2"      xyz="0 -0.084 1.37"        axis="0 1 0"/>
-    <xacro:arm_joint name="joint_4" parent="link_2"      child="link_3"      xyz="-0.2725 -0.084 1.06"  axis="0 0 1"/>
-    <xacro:arm_joint name="joint_5" parent="link_3"      child="link_4"      xyz="0 0 0.91"             axis="1 0 0"/>
-    <xacro:arm_joint name="joint_6" parent="link_4"      child="link_5"      xyz="-0.025 0.0175 -0.27"  axis="0 1 0"/>
+    <xacro:arm_joint name="joint_1" parent="base_link"   child="base_2_link" xyz="0 0 1.613"            axis="0 0 1" effort="${effort_ds3240}"/>
+    <xacro:arm_joint name="joint_2" parent="base_2_link" child="link_1"      xyz="0 0 0"                axis="0 1 0" effort="${effort_ds51150}"/>
+    <xacro:arm_joint name="joint_3" parent="link_1"      child="link_2"      xyz="0 -0.084 1.37"        axis="0 1 0" effort="${effort_ds51150}"/>
+    <xacro:arm_joint name="joint_4" parent="link_2"      child="link_3"      xyz="-0.2725 -0.084 1.06"  axis="0 0 1" effort="${effort_mg996r}"/>
+    <xacro:arm_joint name="joint_5" parent="link_3"      child="link_4"      xyz="0 0 0.91"             axis="1 0 0" effort="${effort_mg996r}"/>
+    <xacro:arm_joint name="joint_6" parent="link_4"      child="link_5"      xyz="-0.025 0.0175 -0.27"  axis="0 1 0" effort="${effort_mg996r}"/>
 
     <joint name="virtual_joint_tip_link" type="fixed">
         <parent link="link_5"/>

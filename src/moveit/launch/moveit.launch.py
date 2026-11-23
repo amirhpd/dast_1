@@ -5,9 +5,9 @@
 # to move the robot:
 # ros2 launch description gazebo.launch.py  # This will also start the conroller launch file 
 # ros2 launch moveit moveit.launch.py 
-# ros2 run moveit interface_pose 2.094 -1.345 0.038 -3.053 0.000 1.000
+# ros2 run moveit interface_pose 3.486 -0.400 0.321 2.258 0.428 2.732
 # or
-# ros2 run moveit interface_angle 1.0 0.52 1.57 1.57 0.0
+# ros2 run moveit interface_angle -33 58 57 37 -44 58   # degrees
 
 
 from launch import LaunchDescription
