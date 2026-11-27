@@ -98,7 +98,7 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
-    <xacro:arm_joint name="joint_1" parent="base_link"   child="base_2_link" xyz="0 0 1.613"            axis="0 0 1" effort="${effort_ds3240}"/>
+    <xacro:arm_joint name="joint_1" parent="base_link"   child="base_2_link" xyz="0 0 1.685"            axis="0 0 1" effort="${effort_ds3240}"/>
     <xacro:arm_joint name="joint_2" parent="base_2_link" child="link_1"      xyz="0 0 0"                axis="0 1 0" effort="${effort_ds51150}"/>
     <xacro:arm_joint name="joint_3" parent="link_1"      child="link_2"      xyz="0 -0.084 1.37"        axis="0 1 0" effort="${effort_ds51150}"/>
     <xacro:arm_joint name="joint_4" parent="link_2"      child="link_3"      xyz="-0.2725 -0.084 1.06"  axis="0 0 1" effort="${effort_mg996r}"/>
